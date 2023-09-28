@@ -5,7 +5,6 @@ from Backend.utils import  addtoGrp
 from django.http import HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from Backend.permissions import TeamAdminPermission
 
 class GroupList(generics.ListAPIView):
     serializer_class = GroupSerializer
@@ -26,8 +25,7 @@ class GroupList(generics.ListAPIView):
 
 
 @api_view(['POST'])
-@permission_classes([TeamAdminPermission])
 def memberAdd(request):
     addtoGrp(request.data["name"] , request.data["id"])
-    return Response(request.data)
+    return Response(request.data["id"])
 
