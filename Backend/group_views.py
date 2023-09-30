@@ -13,16 +13,13 @@ class GroupList(generics.ListAPIView):
         Optionally restricts the returned purchases to a given user,
         by filtering against a `username` query parameter in the URL.
         """
-        try:
-            queryset = Group.objects.all()
-            uid = self.request.query_params.get('id')
-            if uid is not None:
-                queryset = queryset.filter(member=uid)
-            return queryset
-        except:
-            print("Error occoured")
-            return HttpResponse("Mistake made")
-
+        
+        queryset = Group.objects.all()
+        uid = self.request.query_params.get('id')
+        if uid is not None:
+            queryset = queryset.filter(member=uid)
+        return queryset
+        
 
 @api_view(['POST'])
 def memberAdd(request):

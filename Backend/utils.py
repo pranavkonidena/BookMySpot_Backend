@@ -1,4 +1,5 @@
-from Backend.models import User,Group,Team
+from Backend.models import User,Group,Team,Amenity
+from rest_framework.exceptions import APIException
 from logging import log
 def create_user(name , enrollnum):
     user = User()
@@ -27,20 +28,25 @@ def createTeam(teamname , admin_id):
     team.save()
     team.admin_id.add(admin_id)
     team.save()
-    # if(not allteams):
-    #     team.name = teamname
-    #     team.save()
-    #     team.admin_id.add(admin_id)
-    #     team.save()
-    # else:
-    #     raise Exception()
 
 def addMemberToTeam(teamname , member , admin):
     team = Team.objects.filter(name = teamname)
     if(not team):
-        raise Exception()
+        raise APIException("Team not found")
     else:
         if admin == "True":
             team[0].admin_id.add(member)
         else:
             team[0].members_id.add(member)
+    team[0].save()
+
+def getAvailableSlots(name , duration , venue , time):
+    amenity = Amenity.objects.all()
+    if(name != ""):
+        amenity = Amenity.objects.filter(name=name)
+    if(venue != ""):
+        amenity = Amenity.objects.filter(venue=venue)
+    if(time != ""):
+        amenity = Amenity.objects.filter(freeslots=time)
+    
+    

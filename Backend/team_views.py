@@ -12,14 +12,12 @@ class TeamListView(generics.ListAPIView):
         Optionally restricts the returned purchases to a given user,
         by filtering against a `username` query parameter in the URL.
         """
-        try:
-            queryset = Team.objects.all()
-            uid = self.request.query_params.get('id')
-            if uid is not None:
-                queryset = queryset.filter(members_id = uid)
-            return queryset
-        except:
-            print("Error occoured")
+       
+        queryset = Team.objects.all()
+        uid = self.request.query_params.get('id')
+        if uid is not None:
+            queryset = queryset.filter(members_id = uid)
+        return queryset
         
 
 @api_view(['POST'])
@@ -36,12 +34,8 @@ def addMember(request):
    teamname = request.data["name"]
    member_id = request.data["id"]
    admin = request.data["admin"]
-
-   try:
-    addMemberToTeam(teamname , member_id , admin)
-    return Response(request.data)
-   except:
-    return Response("Code : Team doesn't exist")
+   addMemberToTeam(teamname , member_id , admin)
+   return Response(request.data)
   
 
 

@@ -7,5 +7,7 @@ urlpatterns = [
     path("group/add" , group_views.memberAdd),
     path("team" , team_views.TeamListView.as_view()),
     path("team/create" , team_views.createTeamView),
-    path("team/add" , team_views.addMember)
+    path("team/add" , team_views.addMember),
+    path("booking/individual" , views.IndividualBookingView.as_view()),
+    path("booking/getSlots" , views.getAvailableSlots),
 ]
