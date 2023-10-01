@@ -67,40 +67,58 @@ def convertIntoTime(a):
     hours = hours+8
     return datetime.time(hour=hours,minute=minutes)
 
+all_bookings = []
+
+empty = []
 def GetSlot(duration , amenity_id):
+    duration = int(duration)
+    scaled_duration = int(duration/15)
     amenity = Amenity.objects.filter(id=amenity_id)
     x = amenity.first()
     x = x.freeslots.all()
-    empty = []
     for i in range(len(x)):
         empty.append(x[i].id)
-    full = []
-    temp = duration / 15
-    booking=[]
-    count = 0
-    prev = empty[0] - 1
+    count=0
+    booking = []
+    all_booking = []
+    prev = empty[0]-1
     for item in empty:
-        if count == temp:
-            print("Slot exists")
-            full.append(booking)
-            for item in booking:
-                empty.remove(item)
-            return ({convertIntoTime(booking[0]-1)} , {convertIntoTime(booking[len(booking)-1])})
-        if item - prev == 1:
+        if(item-prev==1):
             count += 1
             booking.append(item)
         else:
-            count = 0
-            booking = []
-            
+            if count < scaled_duration:
+                count = 1
+                booking = []
+                booking.append(item)
+            else:
+                count = 1
+                all_booking.append(booking)
+                booking = []
+                booking.append(item)
         prev = item
-    if count == temp:
-        full.append(booking)
-        for item in booking:
-            empty.remove(item)
-        return ({convertIntoTime(booking[0]-1)} , {convertIntoTime(booking[len(booking)-1])})
-    else:
-        return -1
+    if(len(booking) >= scaled_duration):
+        all_booking.append(booking)
+    
+    final_booking = []
+    for item in all_booking:
+        if(len(item) > scaled_duration):
+            for element in item:
+                if element+scaled_duration-1 in item:
+                    temp = []
+                    for i in range(int(element),int(element+scaled_duration)):
+                        temp.append(i)
+                    final_booking.append(temp)
+        else:
+            final_booking.append(item)
+
+
+    final_times = []
+    for item in final_booking:
+        timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
+        final_times.append(timestamp)
+    return final_times
+    
     
 
 
@@ -111,10 +129,10 @@ def setInitialFreeSlots():
     #     if(not item.freeslots.contains(96)):
     #         item.freeslots = [i for i in range(1,97)]
     #     item.save()
-    for i in range(1,97):
+    for i in range(1,57):
         amenity[0].freeslots.add(i)
     amenity[0].save()
-    # for i in range(1,97):
+    # for i in range(1,57):
     #     number = numbers()
     #     number.id = i
     #     number.save()

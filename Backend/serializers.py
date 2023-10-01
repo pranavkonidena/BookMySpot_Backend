@@ -26,3 +26,7 @@ class AmenitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Amenity
         fields = ["name" , "id" , "allowed" , "venue" , "freeslots" , "start_time" , "end_time"]
+
+class TimeSerializer(serializers.Serializer):
+    start_time = serializers.TimeField()
+    end_time = serializers.TimeField()
