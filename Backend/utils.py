@@ -70,9 +70,8 @@ def convertIntoTime(a):
 all_bookings = []
 
 empty = []
-def GetSlot(duration , amenity_id , *args, **kwargs):
+def GetSlot(duration ,*args, **kwargs):
     duration = int(duration)
-    location = ""
     amenity = ""
     scaled_duration = int(duration/15)
     if('location' in kwargs):
