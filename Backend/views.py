@@ -1,7 +1,7 @@
 from Backend.models import User,IndividualBooking,Amenity
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer
 from rest_framework import generics
-from Backend.utils import create_user,GetSlot
+from Backend.utils import create_user,GetSlot,doOauth
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
@@ -42,7 +42,12 @@ def serialize_datetime(obj):
 
 @api_view(['POST'])
 def getAvailableSlots(request):
-    data = GetSlot(request.data["duration"] , request.data["id"])
+    if(request.data["location"]):
+        data = GetSlot(request.data["duration"] , request.data["id"] , location = request.data["location"])
+    elif(request.data["amenity"]):
+        data = GetSlot(request.data["duration"] , request.data["id"] , amenity = request.data["amenity"])
+    else:
+        data = GetSlot(request.data["duration"] , request.data["id"])
     serialized_data = []
     for item in data:
         start_time, end_time = item
@@ -61,3 +66,7 @@ def getAvailableSlots(request):
     # data = AmenitySerializer(amenity , many=True)
     # return Response(data.data)
 
+@api_view(["GET"])
+def userAuth(request):
+    data = doOauth(request.query_params.get("code"))
+    return Response(data)

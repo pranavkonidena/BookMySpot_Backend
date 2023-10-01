@@ -70,11 +70,22 @@ def convertIntoTime(a):
 all_bookings = []
 
 empty = []
-def GetSlot(duration , amenity_id):
+def GetSlot(duration , amenity_id , *args, **kwargs):
     duration = int(duration)
+    location = ""
+    amenity = ""
     scaled_duration = int(duration/15)
-    amenity = Amenity.objects.filter(id=amenity_id)
-    x = amenity.first()
+    for key,value in kwargs.items():
+        if key == "location":
+            location = value
+        elif key == "amenity":
+            amenity = value
+    amenity = Amenity.objects.all()
+    if(len(location) != 0):
+        amenity = Amenity.objects.filter(venue=location)
+    if(amenity != ""):
+        amenity = Amenity.objects.filter(name=amenity)
+    x = amenity[0]
     x = x.freeslots.all()
     for i in range(len(x)):
         empty.append(x[i].id)
@@ -124,7 +135,7 @@ def GetSlot(duration , amenity_id):
 
 
 def setInitialFreeSlots():
-    amenity = Amenity.objects.filter(id=1)
+    amenity = Amenity.objects.filter(id=2)
     # for item in amenity:
     #     if(not item.freeslots.contains(96)):
     #         item.freeslots = [i for i in range(1,97)]
@@ -136,4 +147,33 @@ def setInitialFreeSlots():
     #     number = numbers()
     #     number.id = i
     #     number.save()
+
+import os
+import requests
+from dotenv import load_dotenv
+load_dotenv()
+
+def doOauth(code):
+    client_id = os.environ.get("CLIENT_ID")
+    client_secret = os.environ.get("CLIENT_SECRET")
+    redirect_uri = os.environ.get("REDIRECT_URI")
+    post_data = {
+        "client_id" : client_id,
+        "client_secret" : client_secret,
+        "grant_type" : "authorization_code",
+        "redirect_uri" : redirect_uri,
+        "code" : code
+    }
+    print(f"Code {code}")
+   
+    temp_data = requests.post('https://channeli.in/open_auth/token/?' , data=post_data)
+    temp_data = temp_data.json()
+    access_token = temp_data["access_token"]
+    header = {
+        "Authorization" : f"Bearer {access_token}"
+    }
+    person_data = requests.get('https://channeli.in/open_auth/get_user_data/' , headers=header)
+
+    return person_data.json()
     
+
