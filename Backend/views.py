@@ -48,21 +48,43 @@ def getAvailableSlots(request):
         data = GetSlot(request.data["duration"] ,  amenity = request.data["amenity"])
     if(not "location" in request.data and not "amenity" in request.data):
         data = GetSlot(request.data["duration"])
-    serialized_data = []
-    for item in data:
-        for free_slot in item["free_slots"]:
-            start_time , end_time = free_slot
-            data2 = {
-                    'start_time': start_time.strftime('%H:%M'),
-                    'end_time': end_time.strftime('%H:%M'),
-                    'amenity_id' : item["id"],
-                        }
-            serializer = TimeSerializer(data=data2)
-            if serializer.is_valid():
-                serialized_data.append(serializer.validated_data)
-            else:
-                print(serializer.errors)
-    return Response(serialized_data)
+    if("start_time" in request.data):
+        serialized_data = []
+        for item in data:
+            for free_slot in item["free_slots"]:
+                start_time , end_time = free_slot
+                string_as_list = request.data["start_time"].split(":")
+                hours = int(string_as_list[0])
+                minutes = string_as_list[1]
+                if(abs(hours-int(start_time.hour)) < 1):
+                    data2 = {
+                            'start_time': start_time.strftime('%H:%M'),
+                            'end_time': end_time.strftime('%H:%M'),
+                            'amenity_id' : item["id"],
+                                }
+                    serializer = TimeSerializer(data=data2)
+                    if serializer.is_valid():
+                        serialized_data.append(serializer.validated_data)
+                    else:
+                        print(serializer.errors)
+        return Response(serialized_data)
+    else:
+        serialized_data = []
+        for item in data:
+            for free_slot in item["free_slots"]:
+                start_time , end_time = free_slot
+                data2 = {
+                        'start_time': start_time.strftime('%H:%M'),
+                        'end_time': end_time.strftime('%H:%M'),
+                        'amenity_id' : item["id"],
+                            }
+                serializer = TimeSerializer(data=data2)
+                if serializer.is_valid():
+                    serialized_data.append(serializer.validated_data)
+                else:
+                    print(serializer.errors)
+        return Response(serialized_data)
+
 
 @api_view(["GET"])
 def userAuth(request):
