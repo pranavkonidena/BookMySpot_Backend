@@ -72,13 +72,15 @@ all_bookings = []
 empty = []
 def GetSlot(duration ,*args, **kwargs):
     duration = int(duration)
-    amenity = ""
     scaled_duration = int(duration/15)
     if('location' in kwargs):
+        global amenity
         amenity = Amenity.objects.filter(venue=kwargs["location"])
-    elif('amenity' in kwargs):
-        amenity = Amenity.objects.filter(name=kwargs["amenity"])
-    else:
+    if('amenity' in kwargs):
+        amenity = amenity.filter(name = kwargs["amenity"])
+    if('start_time' in kwargs):
+        amenity = amenity.objects.filter(name=kwargs["start_time"])
+    if(not 'location' in kwargs and not 'amenity' in kwargs and not 'start_time' in kwargs):
         amenity = Amenity.objects.all()
     full_final_times_with_id = []
     for j in range(len(amenity)):

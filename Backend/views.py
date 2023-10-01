@@ -44,14 +44,13 @@ def serialize_datetime(obj):
 def getAvailableSlots(request):
     if("location" in request.data):
         data = GetSlot(request.data["duration"] ,  location = request.data["location"])
-    elif("amenity" in request.POST):
+    if("amenity" in request.data):
         data = GetSlot(request.data["duration"] ,  amenity = request.data["amenity"])
-    else:
+    if(not "location" in request.data and not "amenity" in request.data):
         data = GetSlot(request.data["duration"])
     serialized_data = []
     for item in data:
         for free_slot in item["free_slots"]:
-            print(free_slot)
             start_time , end_time = free_slot
             data2 = {
                     'start_time': start_time.strftime('%H:%M'),
