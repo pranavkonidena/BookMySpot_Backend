@@ -33,7 +33,7 @@ class IndividualBookingView(generics.ListAPIView):
             queryset = queryset.filter(id=uid)
         return queryset
 
-import json
+
 import datetime
 def serialize_datetime(obj):
     if isinstance(obj, datetime.datetime):
@@ -42,29 +42,28 @@ def serialize_datetime(obj):
 
 @api_view(['POST'])
 def getAvailableSlots(request):
-    if(request.data["location"]):
+    if("location" in request.data):
         data = GetSlot(request.data["duration"] , request.data["id"] , location = request.data["location"])
-    elif(request.data["amenity"]):
+    elif("amenity" in request.POST):
         data = GetSlot(request.data["duration"] , request.data["id"] , amenity = request.data["amenity"])
     else:
         data = GetSlot(request.data["duration"] , request.data["id"])
     serialized_data = []
     for item in data:
-        start_time, end_time = item
-        data2 = {
-            'start_time': start_time.strftime('%H:%M'),
-            'end_time': end_time.strftime('%H:%M'),
-                }
-        serializer = TimeSerializer(data=data2)
-        if serializer.is_valid():
-            serialized_data.append(serializer.validated_data)
-        else:
-            print(serializer.errors)
-    print(data)
+        for free_slot in item["free_slots"]:
+            print(free_slot)
+            start_time , end_time = free_slot
+            data2 = {
+                    'start_time': start_time.strftime('%H:%M'),
+                    'end_time': end_time.strftime('%H:%M'),
+                    'amenity_id' : item["id"],
+                        }
+            serializer = TimeSerializer(data=data2)
+            if serializer.is_valid():
+                serialized_data.append(serializer.validated_data)
+            else:
+                print(serializer.errors)
     return Response(serialized_data)
-    # amenity = Amenity.objects.filter(id=request.data["id"])
-    # data = AmenitySerializer(amenity , many=True)
-    # return Response(data.data)
 
 @api_view(["GET"])
 def userAuth(request):

@@ -30,3 +30,4 @@ class AmenitySerializer(serializers.ModelSerializer):
 class TimeSerializer(serializers.Serializer):
     start_time = serializers.TimeField()
     end_time = serializers.TimeField()
+    amenity_id = serializers.IntegerField()

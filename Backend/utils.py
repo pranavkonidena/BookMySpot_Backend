@@ -75,61 +75,63 @@ def GetSlot(duration , amenity_id , *args, **kwargs):
     location = ""
     amenity = ""
     scaled_duration = int(duration/15)
-    for key,value in kwargs.items():
-        if key == "location":
-            location = value
-        elif key == "amenity":
-            amenity = value
-    amenity = Amenity.objects.all()
-    if(len(location) != 0):
-        amenity = Amenity.objects.filter(venue=location)
-    if(amenity != ""):
-        amenity = Amenity.objects.filter(name=amenity)
-    x = amenity[0]
-    x = x.freeslots.all()
-    for i in range(len(x)):
-        empty.append(x[i].id)
-    count=0
-    booking = []
-    all_booking = []
-    prev = empty[0]-1
-    for item in empty:
-        if(item-prev==1):
-            count += 1
-            booking.append(item)
-        else:
-            if count < scaled_duration:
-                count = 1
-                booking = []
+    if('location' in kwargs):
+        amenity = Amenity.objects.filter(venue=kwargs["location"])
+    elif('amenity' in kwargs):
+        amenity = Amenity.objects.filter(name=kwargs["amenity"])
+    else:
+        amenity = Amenity.objects.all()
+    full_final_times_with_id = []
+    for j in range(len(amenity)):
+        x = amenity[j]
+        print(x.name)
+        x = x.freeslots.all()
+        for i in range(len(x)):
+            empty.append(x[i].id)
+        count=0
+        booking = []
+        all_booking = []
+        prev = empty[0]-1
+        for item in empty:
+            if(item-prev==1):
+                count += 1
                 booking.append(item)
             else:
-                count = 1
-                all_booking.append(booking)
-                booking = []
-                booking.append(item)
-        prev = item
-    if(len(booking) >= scaled_duration):
-        all_booking.append(booking)
-    
-    final_booking = []
-    for item in all_booking:
-        if(len(item) > scaled_duration):
-            for element in item:
-                if element+scaled_duration-1 in item:
-                    temp = []
-                    for i in range(int(element),int(element+scaled_duration)):
-                        temp.append(i)
-                    final_booking.append(temp)
-        else:
-            final_booking.append(item)
+                if count < scaled_duration:
+                    count = 1
+                    booking = []
+                    booking.append(item)
+                else:
+                    count = 1
+                    all_booking.append(booking)
+                    booking = []
+                    booking.append(item)
+            prev = item
+        if(len(booking) >= scaled_duration):
+            all_booking.append(booking)
+        
+        final_booking = []
+        for item in all_booking:
+            if(len(item) > scaled_duration):
+                for element in item:
+                    if element+scaled_duration-1 in item:
+                        temp = []
+                        for i in range(int(element),int(element+scaled_duration)):
+                            temp.append(i)
+                        final_booking.append(temp)
+            else:
+                final_booking.append(item)
 
 
-    final_times = []
-    for item in final_booking:
-        timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
-        final_times.append(timestamp)
-    return final_times
-    
+        final_times = []
+        for item in final_booking:
+            timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
+            final_times.append(timestamp)
+        entry = {}
+        entry["id"] = amenity[j].id
+        entry["free_slots"] = final_times
+        full_final_times_with_id.append(entry)
+    return full_final_times_with_id    
     
 
 
