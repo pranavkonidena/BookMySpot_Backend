@@ -1,6 +1,6 @@
-from Backend.models import User,Group,Team,Amenity
+from Backend.models import User,Group,Team,Amenity,numbers
 from rest_framework.exceptions import APIException
-from logging import log
+import datetime
 def create_user(name , enrollnum):
     user = User()
     user.name = name
@@ -49,4 +49,73 @@ def getAvailableSlots(name , duration , venue , time):
     if(time != ""):
         amenity = Amenity.objects.filter(freeslots=time)
     
+    #idea is every hrs into minutes and then maintain bool for each
+    #better version in list of tuples
+    #or another idea is store it in array (start array , end array , i , i+1)
+    #notify that amenity is empty
+
+
+
+
+
+import math
+def convertIntoTime(a):
+    a = a*15
+    hours = math.floor(a / 60)
+    a = a - (60*hours)
+    minutes = a 
+    hours = hours+8
+    return datetime.time(hour=hours,minute=minutes)
+
+def GetSlot(duration , amenity_id):
+    amenity = Amenity.objects.filter(id=amenity_id)
+    x = amenity.first()
+    x = x.freeslots.all()
+    empty = []
+    for i in range(len(x)):
+        empty.append(x[i].id)
+    full = []
+    temp = duration / 15
+    booking=[]
+    count = 0
+    prev = empty[0] - 1
+    for item in empty:
+        if count == temp:
+            print("Slot exists")
+            full.append(booking)
+            for item in booking:
+                empty.remove(item)
+            return ({convertIntoTime(booking[0]-1)} , {convertIntoTime(booking[len(booking)-1])})
+        if item - prev == 1:
+            count += 1
+            booking.append(item)
+        else:
+            count = 0
+            booking = []
+            
+        prev = item
+    if count == temp:
+        full.append(booking)
+        for item in booking:
+            empty.remove(item)
+        return ({convertIntoTime(booking[0]-1)} , {convertIntoTime(booking[len(booking)-1])})
+    else:
+        return -1
+    
+
+
+
+def setInitialFreeSlots():
+    amenity = Amenity.objects.filter(id=1)
+    # for item in amenity:
+    #     if(not item.freeslots.contains(96)):
+    #         item.freeslots = [i for i in range(1,97)]
+    #     item.save()
+    for i in range(1,97):
+        amenity[0].freeslots.add(i)
+    amenity[0].save()
+    # for i in range(1,97):
+    #     number = numbers()
+    #     number.id = i
+    #     number.save()
     

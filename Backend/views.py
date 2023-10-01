@@ -1,7 +1,7 @@
 from Backend.models import User,IndividualBooking,Amenity
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,AmenitySerializer
 from rest_framework import generics
-from Backend.utils import create_user
+from Backend.utils import create_user,GetSlot
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
@@ -37,11 +37,8 @@ class IndividualBookingView(generics.ListAPIView):
 
 @api_view(['POST'])
 def getAvailableSlots(request):
-    queryset = Amenity.objects.all()
-    name = request.data["name"]
-    if name is not None:
-        queryset = queryset.filter(name=name)
-    
-    data = AmenitySerializer(queryset , many = True)
-    return Response(data=data.data)
+    return Response(GetSlot(request.data["duration"] , request.data["id"]))
+    # amenity = Amenity.objects.filter(id=request.data["id"])
+    # data = AmenitySerializer(amenity , many=True)
+    # return Response(data.data)
 
