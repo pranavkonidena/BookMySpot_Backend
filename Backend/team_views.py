@@ -37,6 +37,3 @@ def addMember(request):
    addMemberToTeam(teamname , member_id , admin)
    return Response(request.data)
   
-
-
-

@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,Amenity,numbers
+from Backend.models import User,Group,Team,Amenity,IndividualBooking
 from rest_framework.exceptions import APIException
 import datetime
 def create_user(name , enrollnum):
@@ -181,4 +181,58 @@ def doOauth(code):
 
     return person_data.json()
     
+def invconvertTime(start_time , end_time):
+    first_as_list = start_time.split(":")
+    start_hour = int(first_as_list[0])
+    start_minute = int(first_as_list[1])
+
+    second_as_list = end_time.split(":")
+    end_hour = int(second_as_list[0])
+    end_minute = int(second_as_list[1])
+
+    start_hour -= 8
+    start_minute /= 15
+
+    start_ans = int(4*start_hour + start_minute)
+
+    end_hour -= 8
+    end_minute /= 15
+
+    end_ans = int(4*end_hour + end_minute)
+
+
+    return f"{start_ans} , {end_ans}"
+
+def makeIndiRes(id_user,amenity_id,start_time,end_time):
+    result = invconvertTime(start_time,end_time)
+    result_list = result.split(",")
+    start = int(result_list[0])
+    end = int(result_list[1])
+
+    amenity = Amenity.objects.get(id=amenity_id)
+    duration_slot = int((end-start)*15)
+    if(start == 0):
+        for i in range(start,end+1):
+            amenity.freeslots.remove(i)
+        amenity.save()
+    else:
+        for i in range(start+1,end+1):
+            amenity.freeslots.remove(i)
+        amenity.save()
+
+
+    booking = IndividualBooking()
+    booking.amenity_id=amenity_id
+    booking.booker_id=id_user
+    booking.time_of_slot = convertIntoTime(start)
+    booking.duration_of_booking = duration_slot
+
+    booking.save()
+
+    data = {}
+    data["amenity_id"] = amenity_id
+    data["booker_id"] = id_user
+    data["time_of_slot"] = convertIntoTime(start)
+    data["duration_of_booking"] = duration_slot
+    return data
 

@@ -20,7 +20,7 @@ class TeamSerializer(serializers.ModelSerializer):
 class IndividualBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndividualBooking
-        fields = ["booker_id" , "time_of_slot" , "duration_of_booking" , "name_of_slot" , "timestamp_of_booking" , "amenity_id"]
+        fields = ["booker_id" , "time_of_slot" , "duration_of_booking" , "timestamp_of_booking" , "amenity_id"]
 
 class AmenitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,3 +31,5 @@ class TimeSerializer(serializers.Serializer):
     start_time = serializers.TimeField()
     end_time = serializers.TimeField()
     amenity_id = serializers.IntegerField()
+
+

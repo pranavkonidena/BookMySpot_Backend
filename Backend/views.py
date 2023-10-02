@@ -1,7 +1,7 @@
 from Backend.models import User,IndividualBooking,Amenity
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer
 from rest_framework import generics
-from Backend.utils import create_user,GetSlot,doOauth
+from Backend.utils import GetSlot,doOauth,makeIndiRes
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
@@ -92,3 +92,14 @@ def getAvailableSlots(request):
 def userAuth(request):
     data = doOauth(request.query_params.get("code"))
     return Response(data)
+
+@api_view(["POST"])
+def makeIndiReservation(request):
+    amenity_id = request.data["amenity_id"]
+    start_time = request.data["start_time"]
+    end_time = request.data["end_time"]
+    id_user = request.data["id_user"]
+    data = makeIndiRes(id_user,amenity_id,start_time,end_time)
+
+    data = IndividualBookingSerializer(data)
+    return Response(data.data)
