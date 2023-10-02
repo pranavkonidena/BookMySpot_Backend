@@ -11,5 +11,7 @@ urlpatterns = [
     path("team/add" , team_views.addMember),
     path("booking/individual" , views.IndividualBookingView.as_view()),
     path("booking/getSlots" , views.getAvailableSlots),
-    path("booking/bookSlot" , views.makeIndiReservation)
+    path("booking/bookSlot" , views.makeIndiReservation),
+    path("booking/cancelSlot" , views.cancelIndiReservation)
+
 ]

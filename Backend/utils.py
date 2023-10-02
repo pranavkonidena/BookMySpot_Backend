@@ -203,6 +203,17 @@ def invconvertTime(start_time , end_time):
 
     return f"{start_ans} , {end_ans}"
 
+def invconvertTimeSingle(start_time):
+    start_hour = start_time.hour
+    start_minute = start_time.minute
+
+    start_hour -= 8
+    start_minute /= 15
+
+    start_ans = int(4*start_hour + start_minute)
+
+    return f"{start_ans}"
+
 def makeIndiRes(id_user,amenity_id,start_time,end_time):
     result = invconvertTime(start_time,end_time)
     result_list = result.split(",")
@@ -234,5 +245,22 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time):
     data["booker_id"] = id_user
     data["time_of_slot"] = convertIntoTime(start)
     data["duration_of_booking"] = duration_slot
+    data["id"] = booking.id
     return data
 
+def cancelIndiRes(booking_id):
+    booking = IndividualBooking.objects.filter(id=booking_id)
+    amenity_id = booking[0].amenity.id
+    start_time = booking[0].time_of_slot
+    duration_of_time = booking[0].duration_of_booking
+    start_conv = int(invconvertTimeSingle(start_time))
+    end_conv = start_conv + int(int(duration_of_time)/15)
+    amenity = Amenity.objects.get(id=amenity_id)
+    print(len(amenity.freeslots.all()))
+    for i in range(start_conv,end_conv+1):
+        if(i not in amenity.freeslots.all()):
+            amenity.freeslots.add(i)
+    booking.delete()
+    amenity.save()
+
+   

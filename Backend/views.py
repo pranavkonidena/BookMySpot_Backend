@@ -1,7 +1,7 @@
 from Backend.models import User,IndividualBooking,Amenity
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer
 from rest_framework import generics
-from Backend.utils import GetSlot,doOauth,makeIndiRes
+from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
@@ -103,3 +103,9 @@ def makeIndiReservation(request):
 
     data = IndividualBookingSerializer(data)
     return Response(data.data)
+
+@api_view(["GET"])
+def cancelIndiReservation(request):
+    booking_id= request.query_params.get("booking_id")
+    cancelIndiRes(booking_id)
+    return Response("OK")
