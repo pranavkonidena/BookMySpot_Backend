@@ -69,23 +69,27 @@ def convertIntoTime(a):
 
 all_bookings = []
 
-empty = []
-def GetSlot(duration ,*args, **kwargs):
+
+def GetSlot(duration  ,*args, **kwargs):
     duration = int(duration)
     scaled_duration = int(duration/15)
-    if('location' in kwargs):
-        global amenity
+    duration = int(duration)
+    scaled_duration = int(duration/15)
+    if('location' in kwargs and 'amenity' in kwargs):
         amenity = Amenity.objects.filter(venue=kwargs["location"])
-    if('amenity' in kwargs):
-        amenity = amenity.filter(name = kwargs["amenity"])
-    if('start_time' in kwargs):
-        amenity = amenity.objects.filter(name=kwargs["start_time"])
-    if(not 'location' in kwargs and not 'amenity' in kwargs and not 'start_time' in kwargs):
+        print(f"GET{len(amenity)}")
+        amenity = amenity.filter(name=kwargs["amenity"])
+        print(f"GET{len(amenity)}")
+    elif('amenity' in kwargs):
+        amenity = Amenity.objects.filter(name=kwargs["amenity"])
+    elif("location" in kwargs):
+        amenity =  Amenity.objects.filter(venue=kwargs["location"])
+    if(not 'location' in kwargs and not 'amenity' in kwargs):
         amenity = Amenity.objects.all()
     full_final_times_with_id = []
     for j in range(len(amenity)):
+        empty = []
         x = amenity[j]
-        print(x.name)
         x = x.freeslots.all()
         for i in range(len(x)):
             empty.append(x[i].id)
@@ -167,8 +171,6 @@ def doOauth(code):
         "redirect_uri" : redirect_uri,
         "code" : code
     }
-    print(f"Code {code}")
-   
     temp_data = requests.post('https://channeli.in/open_auth/token/?' , data=post_data)
     temp_data = temp_data.json()
     access_token = temp_data["access_token"]

@@ -42,14 +42,17 @@ def serialize_datetime(obj):
 
 @api_view(['POST'])
 def getAvailableSlots(request):
-    if("location" in request.data):
-        data = GetSlot(request.data["duration"] ,  location = request.data["location"])
-    if("amenity" in request.data):
+    if("location" in request.data and "amenity" in request.data):
+        data = GetSlot(request.data["duration"] ,  location = request.data["location"] , amenity=request.data["amenity"])
+    elif("amenity" in request.data):
         data = GetSlot(request.data["duration"] ,  amenity = request.data["amenity"])
-    if(not "location" in request.data and not "amenity" in request.data):
+    elif("location" in request.data):
+        data = GetSlot(request.data["duration"],location=request.data["location"])
+    else:
         data = GetSlot(request.data["duration"])
+    serialized_data = []
+    print(len(serialized_data))
     if("start_time" in request.data):
-        serialized_data = []
         for item in data:
             for free_slot in item["free_slots"]:
                 start_time , end_time = free_slot
@@ -69,7 +72,6 @@ def getAvailableSlots(request):
                         print(serializer.errors)
         return Response(serialized_data)
     else:
-        serialized_data = []
         for item in data:
             for free_slot in item["free_slots"]:
                 start_time , end_time = free_slot
