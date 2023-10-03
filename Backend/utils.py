@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails
+from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails,GroupBooking
 from rest_framework.exceptions import APIException
 import datetime
 def create_user(name , enrollnum):
@@ -142,7 +142,7 @@ def GetSlot(duration  ,*args, **kwargs):
 
 
 def setInitialFreeSlots():
-    amenity = Amenity.objects.filter(id=2)
+    amenity = Amenity.objects.filter(id=1)
     # for item in amenity:
     #     if(not item.freeslots.contains(96)):
     #         item.freeslots = [i for i in range(1,97)]
@@ -297,3 +297,37 @@ def AuthForHead(email,*args, **kwargs):
             return True
     else:
         return False
+
+def groupReservation(group_id , start_time , end_time ,amenity_id):
+    result = invconvertTime(start_time,end_time)
+    result_list = result.split(",")
+    start = int(result_list[0])
+    end = int(result_list[1])
+
+    amenity = Amenity.objects.get(id=amenity_id)
+    duration_slot = int((end-start)*15)
+    if(start == 0):
+        for i in range(start,end+1):
+            amenity.freeslots.remove(i)
+        amenity.save()
+    else:
+        for i in range(start+1,end+1):
+            amenity.freeslots.remove(i)
+        amenity.save()
+
+
+    booking = GroupBooking()
+    booking.amenity_id=amenity_id
+    booking.booker_id=group_id
+    booking.time_of_slot = convertIntoTime(start)
+    booking.duration_of_booking = duration_slot
+
+    booking.save()
+
+    data = {}
+    data["amenity_id"] = amenity_id
+    data["booker_id"] = group_id
+    data["time_of_slot"] = convertIntoTime(start)
+    data["duration_of_booking"] = duration_slot
+    data["id"] = booking.id
+    return data

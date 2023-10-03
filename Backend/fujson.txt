@@ -17,3 +17,8 @@
         "end_time": "14:30:00",
         "amenity_id": "1",
         "id_user":"9b9a22d1c77a49a4a5118ebfee4503f1"}
+
+{       "start_time": "08:00:00",
+        "end_time": "08:30:00",
+        "amenity_id": "1",
+        "group_id":"1"}

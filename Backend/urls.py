@@ -13,6 +13,8 @@ urlpatterns = [
     path("booking/getSlots" , views.getAvailableSlots),
     path("booking/individual/bookSlot" , views.makeIndiReservation),
     path("booking/individual/cancelSlot" , views.cancelIndiReservation),
-    path("amenity/head/auth" , amenityhead_views.HeadAuth)
+    path("booking/group/bookSlot" , group_views.groupReservationView),
+    path("amenity/head/auth" , amenityhead_views.HeadAuth),
+    path("amenity/head/timepass" ,amenityhead_views.DontKnow)
 
 ]
