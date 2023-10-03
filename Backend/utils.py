@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,Amenity,IndividualBooking
+from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails
 from rest_framework.exceptions import APIException
 import datetime
 def create_user(name , enrollnum):
@@ -264,3 +264,36 @@ def cancelIndiRes(booking_id):
     amenity.save()
 
    
+def AuthForHead(email,*args, **kwargs):
+    #Check if given email is a valid head email
+
+    ve = ValidEmails.objects.filter(email=email)
+
+    if(len(ve) != 0):
+        mod = ModUser.objects.filter(email=email)
+        if(len(mod) != 0):
+            #Already exists, do pass validation
+            if("password" in kwargs):
+                mod = mod.filter(password=kwargs["password"])
+                if(len(mod) != 0):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            #Create user
+            me = ModUser()
+            me.email = email
+            if("name" in kwargs):
+                me.name=kwargs["name"]
+            else:
+                me.name="amenity_head"
+            if("password" in kwargs):
+                me.password = kwargs["password"]
+            else:
+                return False
+            me.save()
+            return True
+    else:
+        return False

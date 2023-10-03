@@ -1,5 +1,5 @@
 from django.urls import path 
-from Backend import views,group_views,team_views
+from Backend import views,group_views,team_views,amenityhead_views
 
 urlpatterns = [
     path("user" , views.SpecificUser.as_view()),
@@ -11,7 +11,8 @@ urlpatterns = [
     path("team/add" , team_views.addMember),
     path("booking/individual" , views.IndividualBookingView.as_view()),
     path("booking/getSlots" , views.getAvailableSlots),
-    path("booking/bookSlot" , views.makeIndiReservation),
-    path("booking/cancelSlot" , views.cancelIndiReservation)
+    path("booking/individual/bookSlot" , views.makeIndiReservation),
+    path("booking/individual/cancelSlot" , views.cancelIndiReservation),
+    path("amenity/head/auth" , amenityhead_views.HeadAuth)
 
 ]

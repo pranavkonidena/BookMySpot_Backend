@@ -69,7 +69,12 @@ class Message(models.Model):
 
 class ModUser(models.Model):
     name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=50 , null=True)
+    password = models.CharField(max_length=255, null=True)
 
 
 class numbers(models.Model):
     id = models.IntegerField(primary_key=True)
+
+class ValidEmails(models.Model):
+    email = models.EmailField(max_length=50,unique=True)

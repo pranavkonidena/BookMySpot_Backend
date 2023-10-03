@@ -30,7 +30,7 @@ class IndividualBookingView(generics.ListAPIView):
         queryset = IndividualBooking.objects.all()
         uid = self.request.query_params.get('id')
         if uid is not None:
-            queryset = queryset.filter(id=uid)
+            queryset = queryset.filter(booker_id=uid)
         return queryset
 
 
