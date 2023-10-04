@@ -3,7 +3,7 @@ from Backend.serializers import TeamSerializer
 from rest_framework import generics
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent
+from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent , cancelTeamReservation
 from Backend.permissions import TeamAdminPermission
 class TeamListView(generics.ListAPIView):
     serializer_class = TeamSerializer
@@ -50,4 +50,7 @@ def makeTeamReservation(request):
 @permission_classes([TeamAdminPermission])
 def CancelTeamReservation(request):
     name = request.query_params.get("name")
+    event_id = request.query_params.get("event_id")
+    cancelTeamReservation(name , event_id)
+    return Response("Ok")
     

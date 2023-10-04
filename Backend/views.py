@@ -1,5 +1,5 @@
-from Backend.models import User,IndividualBooking,Amenity
-from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer
+from Backend.models import User,IndividualBooking,Event
+from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer,EventSerializer
 from rest_framework import generics
 from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
 from django.http import HttpResponse
@@ -116,3 +116,7 @@ def cancelIndiReservation(request):
     booking_id= request.query_params.get("booking_id")
     cancelIndiRes(booking_id)
     return Response("OK")
+
+class EventsList(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer

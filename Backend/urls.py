@@ -18,5 +18,5 @@ urlpatterns = [
     path("amenity/head/makeEvent" ,amenityhead_views.CreateEventView),
     path("event/register" , team_views.makeTeamReservation),
     path("event/cancel" , team_views.CancelTeamReservation),
-
+    path("event/getSlots" , views.EventsList.as_view()),
 ]

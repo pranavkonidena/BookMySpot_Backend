@@ -176,7 +176,7 @@ def doOauth(code):
         "redirect_uri" : redirect_uri,
         "code" : code
     }
-    temp_data = requests.post('https://channeli.in/open_auth/token/?' , data=post_data)
+    temp_data = requests.post('https://channeli.in/open_auth/token/' , data=post_data)
     temp_data = temp_data.json()
     access_token = temp_data["access_token"]
     header = {
@@ -421,7 +421,7 @@ def cancelTeamReservation(name , event_id):
     print(len(events[0].team.all()))
     match_i = -5
     event = Event.objects.filter(id=event_id)
-    event = Event.objects.filter(team=team_id)
+    event = event.filter(team=team_id)
     for item in event:
         for i in range(len(item.team.all())):
             if(item.team.all()[i].name == name):
