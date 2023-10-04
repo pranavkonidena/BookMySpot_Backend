@@ -4,6 +4,7 @@ from rest_framework.exceptions import APIException
 from Backend.utils import AuthForHead
 class TeamAdminPermission(permissions.IsAdminUser):
     def has_permission(self, request, view):
+    
         id_given = request.query_params.get("id")
         teamname = request.query_params.get("name")
         team = Team.objects.filter(name=teamname)

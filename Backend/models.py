@@ -57,7 +57,7 @@ class Event(models.Model):
     name = models.CharField(max_length=255)
     time_of_occourence_start = models.DateTimeField()
     time_of_occourence_end = models.DateTimeField()
-
+    team = models.ManyToManyField("Team")
 
 class Message(models.Model):
     sender = models.ForeignKey(

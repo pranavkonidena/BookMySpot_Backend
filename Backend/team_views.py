@@ -3,7 +3,7 @@ from Backend.serializers import TeamSerializer
 from rest_framework import generics
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from Backend.utils import createTeam , addMemberToTeam
+from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent
 from Backend.permissions import TeamAdminPermission
 class TeamListView(generics.ListAPIView):
     serializer_class = TeamSerializer
@@ -28,12 +28,20 @@ def createTeamView(request):
     return Response(request.data)
 
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 @permission_classes([TeamAdminPermission])
 def addMember(request):
-   teamname = request.data["name"]
-   member_id = request.data["id"]
-   admin = request.data["admin"]
-   addMemberToTeam(teamname , member_id , admin)
-   return Response(request.data)
-  
+    if request.method == "POST":
+        teamname = request.data["name"]
+        member_id = request.data["id"]
+        admin = request.data["admin"]
+        addMemberToTeam(teamname , member_id , admin)
+        return Response(request.data)
+    else:
+        return Response("OK")
+import json
+@api_view(['POST'])
+@permission_classes([TeamAdminPermission])
+def makeTeamReservation(request):
+    data = addTeamToEvent(request.data["event_id"] , request.data["team_id"])
+    return Response("OK")

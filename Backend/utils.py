@@ -399,3 +399,15 @@ def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occ
     data["time_of_occourence_end"] = time_of_occourence_end
 
     return data
+
+
+def addTeamToEvent(event_id , team_id):
+    event = Event.objects.get(id=event_id)
+    if not event:
+        raise APIException("Event not found")
+    else:
+        event.team.add(team_id)
+    
+    event.save()
+
+    return event.team

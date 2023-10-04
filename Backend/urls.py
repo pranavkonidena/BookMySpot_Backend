@@ -9,6 +9,7 @@ urlpatterns = [
     path("team" , team_views.TeamListView.as_view()),
     path("team/create" , team_views.createTeamView),
     path("team/add" , team_views.addMember),
+    path("team/register" , team_views.makeTeamReservation),
     path("booking/individual" , views.IndividualBookingView.as_view()),
     path("booking/getSlots" , views.getAvailableSlots),
     path("booking/individual/bookSlot" , views.makeIndiReservation),
