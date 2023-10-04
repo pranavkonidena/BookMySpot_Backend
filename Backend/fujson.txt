@@ -24,3 +24,7 @@
         "group_id":"1"}
 
         {"duration":60 , "date": "Oct 3 2023"}
+
+{"event_name":"test1" , "time_start": "4 Oct 2023 14:00:00" , "time_end" : "4 Oct 2023 16:00:00", "amenity_id" : 1}
+
+{"event_name":"test1" , "time_start": "2023-10-4 14:00:00" , "time_end" : "2023-10-4 16:00:00", "amenity_id" : 1}

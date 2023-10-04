@@ -349,9 +349,9 @@ def checkForEvents(amenity_id):
 
 def removeSlotsWhileEvent(amenity_id):
     result = checkForEvents(amenity_id)
+    print(result)
     start_times = []
     end_times = []
-    
     if(result == False):
         pass
     else:
@@ -360,16 +360,42 @@ def removeSlotsWhileEvent(amenity_id):
             start_times.append(start_time)
             end_times.append(end_time)
     amenity = Amenity.objects.get(id=amenity_id)
-    print(len(amenity.freeslots.all()))
+    print(f"{len(amenity.freeslots.all())} before")
     for start_time in start_times:
         for end_time in end_times:
+            print(end_time)
             start_conv = int(invconvertTimeSingle(start_time))
             end_conv = int(invconvertTimeSingle(end_time))
-            print(start_conv)
-            print(end_conv)
+            print(f"START_CONV {start_conv}")
+            print(f"END_CONV {end_conv}")
             for i in range(start_conv,end_conv+1):
                 amenity.freeslots.remove(i)
+            end_times.remove(end_time)
             break
-    print(end_times[0])
+            
+        
+ 
 
-    print(len(amenity.freeslots.all()))
+    amenity.save()
+
+    print(f"{len(amenity.freeslots.all())} after")
+
+
+def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occourence_end):
+    event = Event()
+    event.amenity_id = amenity_id
+    event.name = event_name
+    format ='%Y-%m-%d %H:%M:%S'
+    event.time_of_occourence_start = datetime.datetime.strptime(time_of_occourence_start , format)
+    event.time_of_occourence_end = datetime.datetime.strptime(time_of_occourence_end , format)
+    event.save()
+
+    removeSlotsWhileEvent(amenity_id)
+
+    data = {}
+    data["amenity_id"] = amenity_id
+    data["name"] = event_name
+    data["time_of_occourence_start"] = time_of_occourence_start
+    data["time_of_occourence_end"] = time_of_occourence_end
+
+    return data
