@@ -42,24 +42,46 @@ def serialize_datetime(obj):
 
 @api_view(['POST'])
 def getAvailableSlots(request):
+    date = request.data["date"]
+    format = '%b %d %Y'
+    datetime_str = datetime.datetime.strptime(date , format)
+
     if("location" in request.data and "amenity" in request.data):
-        data = GetSlot(request.data["duration"] ,  location = request.data["location"] , amenity=request.data["amenity"])
+        data = GetSlot(request.data["duration"] ,datetime_str, location = request.data["location"] , amenity=request.data["amenity"])
     elif("amenity" in request.data):
-        data = GetSlot(request.data["duration"] ,  amenity = request.data["amenity"])
+        data = GetSlot(request.data["duration"] ,datetime_str , amenity = request.data["amenity"])
     elif("location" in request.data):
-        data = GetSlot(request.data["duration"],location=request.data["location"])
+        data = GetSlot(request.data["duration"],datetime_str,location=request.data["location"])
     else:
-        data = GetSlot(request.data["duration"])
+        data = GetSlot(request.data["duration"],datetime_str)
     serialized_data = []
     print(len(serialized_data))
-    if("start_time" in request.data):
-        for item in data:
-            for free_slot in item["free_slots"]:
-                start_time , end_time = free_slot
-                string_as_list = request.data["start_time"].split(":")
-                hours = int(string_as_list[0])
-                minutes = string_as_list[1]
-                if(abs(hours-int(start_time.hour)) < 1):
+    if(len(data) == 0):
+        return Response("No slots")
+    else:
+        if("start_time" in request.data):
+            for item in data:
+                for free_slot in item["free_slots"]:
+                    start_time , end_time = free_slot
+                    string_as_list = request.data["start_time"].split(":")
+                    hours = int(string_as_list[0])
+                    minutes = string_as_list[1]
+                    if(abs(hours-int(start_time.hour)) < 1):
+                        data2 = {
+                                'start_time': start_time.strftime('%H:%M'),
+                                'end_time': end_time.strftime('%H:%M'),
+                                'amenity_id' : item["id"],
+                                    }
+                        serializer = TimeSerializer(data=data2)
+                        if serializer.is_valid():
+                            serialized_data.append(serializer.validated_data)
+                        else:
+                            print(serializer.errors)
+            return Response(serialized_data)
+        else:
+            for item in data:
+                for free_slot in item["free_slots"]:
+                    start_time , end_time = free_slot
                     data2 = {
                             'start_time': start_time.strftime('%H:%M'),
                             'end_time': end_time.strftime('%H:%M'),
@@ -70,22 +92,7 @@ def getAvailableSlots(request):
                         serialized_data.append(serializer.validated_data)
                     else:
                         print(serializer.errors)
-        return Response(serialized_data)
-    else:
-        for item in data:
-            for free_slot in item["free_slots"]:
-                start_time , end_time = free_slot
-                data2 = {
-                        'start_time': start_time.strftime('%H:%M'),
-                        'end_time': end_time.strftime('%H:%M'),
-                        'amenity_id' : item["id"],
-                            }
-                serializer = TimeSerializer(data=data2)
-                if serializer.is_valid():
-                    serialized_data.append(serializer.validated_data)
-                else:
-                    print(serializer.errors)
-        return Response(serialized_data)
+            return Response(serialized_data)
 
 
 @api_view(["GET"])

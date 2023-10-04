@@ -22,3 +22,5 @@
         "end_time": "08:30:00",
         "amenity_id": "1",
         "group_id":"1"}
+
+        {"duration":60 , "date": "Oct 3 2023"}

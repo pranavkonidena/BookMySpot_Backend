@@ -50,7 +50,7 @@ class Team(models.Model):
 
 
 class Event(models.Model):
-    amenity_id = models.ForeignKey(
+    amenity = models.ForeignKey(
         "Amenity",
         on_delete=models.CASCADE,
     )
@@ -75,6 +75,7 @@ class ModUser(models.Model):
 
 
 class numbers(models.Model):
+    date = models.DateField(auto_now=True)
     id = models.IntegerField(primary_key=True)
 
 class ValidEmails(models.Model):
@@ -83,3 +84,4 @@ class ValidEmails(models.Model):
 class notAllowedTimes(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+
