@@ -337,10 +337,8 @@ def groupReservation(group_id , start_time , end_time ,amenity_id):
     data["id"] = booking.id
     return data
 
-def checkForEvents():
-    amenity = Amenity.objects.all()
-    amenity = amenity[0]
-    events = Event.objects.filter(amenity=amenity.id)
+def checkForEvents(amenity_id):
+    events = Event.objects.filter(amenity=amenity_id)
     if(len(events) == 0):
         return False
     else:
@@ -349,14 +347,29 @@ def checkForEvents():
             event_times[item.name] = (item.time_of_occourence_start,item.time_of_occourence_end)
         return event_times 
 
-def removeSlotsWhileEvent():
-    result = checkForEvents()
+def removeSlotsWhileEvent(amenity_id):
+    result = checkForEvents(amenity_id)
     start_times = []
     end_times = []
-    if(len(result) == 0):
+    
+    if(result == False):
         pass
     else:
         for item in result:
             (start_time , end_time) = result[item]
             start_times.append(start_time)
             end_times.append(end_time)
+    amenity = Amenity.objects.get(id=amenity_id)
+    print(len(amenity.freeslots.all()))
+    for start_time in start_times:
+        for end_time in end_times:
+            start_conv = int(invconvertTimeSingle(start_time))
+            end_conv = int(invconvertTimeSingle(end_time))
+            print(start_conv)
+            print(end_conv)
+            for i in range(start_conv,end_conv+1):
+                amenity.freeslots.remove(i)
+            break
+    print(end_times[0])
+
+    print(len(amenity.freeslots.all()))
