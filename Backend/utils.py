@@ -411,3 +411,25 @@ def addTeamToEvent(event_id , team_id):
     event.save()
 
     return event.team
+
+
+def cancelTeamReservation(name , event_id):
+    team = Team.objects.filter(name=name)
+    team_id = team[0].id
+    print(team_id)
+    events = Event.objects.all()
+    print(len(events[0].team.all()))
+    match_i = -5
+    event = Event.objects.filter(id=event_id)
+    event = Event.objects.filter(team=team_id)
+    for item in event:
+        for i in range(len(item.team.all())):
+            if(item.team.all()[i].name == name):
+                match_i = i
+                break
+        if match_i >= 0:
+            break
+    event[0].team.remove(event[0].team.all()[match_i])
+    event[0].save()
+
+    

@@ -39,9 +39,15 @@ def addMember(request):
         return Response(request.data)
     else:
         return Response("OK")
-import json
+
 @api_view(['POST'])
 @permission_classes([TeamAdminPermission])
 def makeTeamReservation(request):
     data = addTeamToEvent(request.data["event_id"] , request.data["team_id"])
     return Response("OK")
+
+@api_view(['GET'])
+@permission_classes([TeamAdminPermission])
+def CancelTeamReservation(request):
+    name = request.query_params.get("name")
+    

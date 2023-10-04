@@ -84,4 +84,3 @@ class ValidEmails(models.Model):
 class notAllowedTimes(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-
