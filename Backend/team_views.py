@@ -28,12 +28,12 @@ def createTeamView(request):
     return Response(request.data)
 
 
-@api_view(['GET','POST'])
+@api_view(['POST'])
 @permission_classes([TeamAdminPermission])
 def addMember(request):
     if request.method == "POST":
         teamname = request.data["name"]
-        member_id = request.data["id"]
+        member_id = request.data["member_id"]
         admin = request.data["admin"]
         addMemberToTeam(teamname , member_id , admin)
         return Response(request.data)
@@ -46,11 +46,11 @@ def makeTeamReservation(request):
     data = addTeamToEvent(request.data["event_id"] , request.data["team_id"])
     return Response("OK")
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([TeamAdminPermission])
 def CancelTeamReservation(request):
-    name = request.query_params.get("name")
-    event_id = request.query_params.get("event_id")
+    name = request.data["name"]
+    event_id = request.data["event_id"]
     cancelTeamReservation(name , event_id)
     return Response("Ok")
-    
+
