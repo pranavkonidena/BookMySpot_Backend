@@ -4,6 +4,8 @@ from Backend import views,group_views,team_views,amenityhead_views
 urlpatterns = [
     path("user" , views.SpecificUser.as_view()),
     path("user/auth" , views.userAuth),
+    path("user/auth/get" , views.getuserAuth),
+    path("user/auth/redirect" , views.redirectuserAuth),
     path("group" , group_views.GroupList.as_view()),
     path("group/add" , group_views.memberAdd),
     path("team" , team_views.TeamListView.as_view()),

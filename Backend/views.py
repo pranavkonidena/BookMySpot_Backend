@@ -5,6 +5,10 @@ from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
+import os
+import requests
+from dotenv import load_dotenv
+load_dotenv()
 # Create your views here.
 
 class UserList(generics.ListAPIView):
@@ -94,11 +98,30 @@ def getAvailableSlots(request):
                         print(serializer.errors)
             return Response(serialized_data)
 
-
+from django.http import HttpResponseRedirect
+data_filled = None
 @api_view(["GET"])
 def userAuth(request):
-    data = doOauth(request.query_params.get("code"))
-    return Response(data)
+    code = request.query_params.get("code")
+    print(code)
+    data_filled = doOauth(code)
+    return Response(data_filled)
+    
+
+
+@api_view(["GET"])
+def getuserAuth(request):
+    global data_filled
+    if(data_filled != None):
+        return Response(data_filled)
+    else:
+        return Response(status=500)
+
+
+@api_view(["GET"])
+def redirectuserAuth(request):
+   oauth_uri = os.environ.get("OAUTH_URI")
+   return HttpResponseRedirect(oauth_uri)
 
 @api_view(["POST"])
 def makeIndiReservation(request):
