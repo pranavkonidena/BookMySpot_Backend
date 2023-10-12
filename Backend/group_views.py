@@ -5,7 +5,7 @@ from Backend.utils import  addtoGrp,groupReservation
 from django.http import HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-
+import datetime
 class GroupList(generics.ListAPIView):
     serializer_class = GroupSerializer
     def get_queryset(self):
@@ -32,7 +32,10 @@ def groupReservationView(request):
     start_time = request.data["start_time"]
     end_time = request.data["end_time"]
     group_id = request.data["group_id"]
-    data = groupReservation(group_id,start_time,end_time,amenity_id)
+    date = request.data["date"]
+    format = '%b %d %Y'
+    datetime_str = datetime.datetime.strptime(date , format)
+    data = groupReservation(group_id,start_time,end_time,amenity_id,datetime_str)
 
     data = GroupBookingSerializer(data)
     return Response(data.data)

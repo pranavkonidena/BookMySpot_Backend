@@ -6,6 +6,7 @@ urlpatterns = [
     path("user/auth" , views.userAuth),
     path("user/auth/get" , views.getuserAuth),
     path("user/auth/redirect" , views.redirectuserAuth),
+    path("user/getBooking" , views.getBooking),
     path("group" , group_views.GroupList.as_view()),
     path("group/add" , group_views.memberAdd),
     path("team" , team_views.TeamListView.as_view()),
@@ -21,4 +22,4 @@ urlpatterns = [
     path("event/register" , team_views.makeTeamReservation),
     path("event/cancel" , team_views.CancelTeamReservation),
     path("event/getSlots" , views.EventsList.as_view()),
-]
+]   

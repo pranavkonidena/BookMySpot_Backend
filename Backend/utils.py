@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails,GroupBooking,Event
+from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails,GroupBooking,Event,numbers
 from rest_framework.exceptions import APIException
 import datetime
 def create_user(name , enrollnum):
@@ -147,11 +147,11 @@ def GetSlot(duration ,date ,*args, **kwargs):
 
 
 def setInitialFreeSlots():
-    amenity = Amenity.objects.filter(id=1)
-    # for item in amenity:
-    #     if(not item.freeslots.contains(96)):
-    #         item.freeslots = [i for i in range(1,97)]
-    #     item.save()
+    amenity = Amenity.objects.filter(id=2)
+    # # for item in amenity:
+    # #     if(not item.freeslots.contains(96)):
+    # #         item.freeslots = [i for i in range(1,97)]
+    # #     item.save()
     for i in range(1,57):
         amenity[0].freeslots.add(i)
     amenity[0].save()
@@ -165,7 +165,7 @@ import requests
 from dotenv import load_dotenv
 load_dotenv()
 
-
+from Backend.models import User
 
 def doOauth(code):
     client_id = os.environ.get("CLIENT_ID")
@@ -181,13 +181,30 @@ def doOauth(code):
     temp_data = requests.post('https://channeli.in/open_auth/token/' , data=post_data)
     temp_data = temp_data.json()
     print(temp_data)
+  
     access_token = temp_data["access_token"]
     header = {
         "Authorization" : f"Bearer {access_token}"
     }
     person_data = requests.get('https://channeli.in/open_auth/get_user_data/' , headers=header)
+    person_data = person_data.json()
+    enrollNum = person_data["username"]
+    name = person_data["person"]["fullName"]
+    display_pic = person_data["person"]["displayPicture"]
+    branch_name = person_data["student"]["branch name"]
+    user = User()
+    try:
+        user_exists = User.objects.get(enroll_number=enrollNum)
+        return user_exists.id
+    except:
+        user.enroll_number = enrollNum
+        user.name = name
+        user.profile_pic = display_pic
+        user.branch = branch_name
+        user.save()
+        return user.id
 
-    return person_data
+    
     
 def invconvertTime(start_time , end_time):
     first_as_list = start_time.split(":")
@@ -222,30 +239,32 @@ def invconvertTimeSingle(start_time):
 
     return f"{start_ans}"
 
-def makeIndiRes(id_user,amenity_id,start_time,end_time):
+def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
     result = invconvertTime(start_time,end_time)
     result_list = result.split(",")
     start = int(result_list[0])
     end = int(result_list[1])
-
     amenity = Amenity.objects.get(id=amenity_id)
     duration_slot = int((end-start)*15)
-    if(start == 0):
-        for i in range(start,end+1):
-            amenity.freeslots.remove(i)
-        amenity.save()
-    else:
-        for i in range(start+1,end+1):
-            amenity.freeslots.remove(i)
-        amenity.save()
+    x = amenity.freeslots.all()
+    for i in range(len(x)):
+        if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
+            if(start == 0):
+                for i in range(start,end+1):
+                    amenity.freeslots.remove(i)
+                amenity.save()
+            else:
+                for i in range(start+1,end+1):
+                    amenity.freeslots.remove(i)
+                amenity.save()
 
 
     booking = IndividualBooking()
     booking.amenity_id=amenity_id
     booking.booker_id=id_user
-    booking.time_of_slot = convertIntoTime(start)
     booking.duration_of_booking = duration_slot
-
+    slot_time = convertIntoTime(start)
+    booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,slot_time.hour,slot_time.minute,0,0)
     booking.save()
 
     data = {}
@@ -272,70 +291,54 @@ def cancelIndiRes(booking_id):
     amenity.save()
 
    
-def AuthForHead(email,*args, **kwargs):
+def AuthForHead(email , password):
     #Check if given email is a valid head email
-
-    ve = ValidEmails.objects.filter(email=email)
-
-    if(len(ve) != 0):
-        mod = ModUser.objects.filter(email=email)
-        if(len(mod) != 0):
-            #Already exists, do pass validation
-            if("password" in kwargs):
-                mod = mod.filter(password=kwargs["password"])
-                if(len(mod) != 0):
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
-            #Create user
-            me = ModUser()
-            me.email = email
-            if("name" in kwargs):
-                me.name=kwargs["name"]
-            else:
-                me.name="amenity_head"
-            if("password" in kwargs):
-                me.password = kwargs["password"]
-            else:
-                return False
-            me.save()
+    me = ModUser.objects.filter(email=email)
+    if(len(me) != 0):
+        me = me.filter(password=password)
+        if(len(me) != 0):
             return True
+        else:
+            return False
     else:
         return False
+            
+    
 
-def groupReservation(group_id , start_time , end_time ,amenity_id):
+
+def groupReservation(group_id , start_time , end_time ,amenity_id,date):
     result = invconvertTime(start_time,end_time)
     result_list = result.split(",")
     start = int(result_list[0])
     end = int(result_list[1])
 
     amenity = Amenity.objects.get(id=amenity_id)
+    x = amenity.freeslots.all()
     duration_slot = int((end-start)*15)
-    if(start == 0):
-        for i in range(start,end+1):
-            amenity.freeslots.remove(i)
-        amenity.save()
-    else:
-        for i in range(start+1,end+1):
-            amenity.freeslots.remove(i)
-        amenity.save()
+    for i in range(len(x)):
+        if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
+            if(start == 0):
+                for i in range(start,end+1):
+                    amenity.freeslots.remove(i)
+                amenity.save()
+            else:
+                for i in range(start+1,end+1):
+                    amenity.freeslots.remove(i)
+                amenity.save()
 
 
     booking = GroupBooking()
     booking.amenity_id=amenity_id
     booking.booker_id=group_id
-    booking.time_of_slot = convertIntoTime(start)
+    time_of_slot = convertIntoTime(start)
     booking.duration_of_booking = duration_slot
-
+    booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,time_of_slot.hour , time_of_slot.minute , time_of_slot.second)
     booking.save()
 
     data = {}
     data["amenity_id"] = amenity_id
     data["booker_id"] = group_id
-    data["time_of_slot"] = convertIntoTime(start)
+    data["time_of_slot"] = str(booking.time_of_slot)
     data["duration_of_booking"] = duration_slot
     data["id"] = booking.id
     return data
@@ -436,3 +439,5 @@ def cancelTeamReservation(name , event_id):
     event[0].save()
 
     
+
+

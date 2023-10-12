@@ -1,7 +1,6 @@
 from rest_framework import permissions
-from Backend.models import Team
+from Backend.models import Team,ModUser
 from rest_framework.exceptions import APIException
-from Backend.utils import AuthForHead
 class TeamAdminPermission(permissions.IsAdminUser):
     def has_permission(self, request, view):
         if(request.method == "POST"):
@@ -21,10 +20,9 @@ class TeamAdminPermission(permissions.IsAdminUser):
 
 class AmenityHeadPermisson(permissions.IsAdminUser):
     def has_permission(self, request, view):
-        email = request.query_params.get("email")
-        password = request.query_params.get("password")
-        result = AuthForHead(email,password=password)
-        if result:
+        token = request.data["id"]
+        me = ModUser.objects.get(id=token)
+        if(me != None):
             return True
         else:
-            raise APIException("User not amenity head")
+            raise APIException("User is not admin")

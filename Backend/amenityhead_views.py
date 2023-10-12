@@ -1,7 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from Backend.models import ModUser
-from Backend.models import ValidEmails
 from Backend.utils import AuthForHead,createEvent
 from Backend.permissions import AmenityHeadPermisson
 from Backend.serializers import EventSerializer
@@ -15,7 +14,7 @@ def HeadAuth(request):
     else:
         return Response("Not an admin head",status=401)
 
-@api_view(["GET" , "POST"])
+@api_view(["POST"])
 @permission_classes([AmenityHeadPermisson])
 def CreateEventView(request): 
     if(request.method == "POST"):   

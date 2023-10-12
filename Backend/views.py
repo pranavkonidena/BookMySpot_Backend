@@ -1,4 +1,4 @@
-from Backend.models import User,IndividualBooking,Event
+from Backend.models import User,IndividualBooking,Event,GroupBooking,Amenity,Group
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer,EventSerializer
 from rest_framework import generics
 from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
@@ -129,7 +129,10 @@ def makeIndiReservation(request):
     start_time = request.data["start_time"]
     end_time = request.data["end_time"]
     id_user = request.data["id_user"]
-    data = makeIndiRes(id_user,amenity_id,start_time,end_time)
+    date = request.data["date"]
+    format = '%b %d %Y'
+    date_time_str = datetime.datetime.strptime(date , format)
+    data = makeIndiRes(id_user,amenity_id,start_time,end_time,date_time_str)
 
     data = IndividualBookingSerializer(data)
     return Response(data.data)
@@ -143,3 +146,46 @@ def cancelIndiReservation(request):
 class EventsList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+import json
+@api_view(["GET"])
+def getBooking(request):
+    user_id = request.query_params.get("id")
+    indi = IndividualBooking.objects.filter(booker_id=user_id)
+    groups = Group.objects.filter(member=user_id)
+   
+    bookings = []
+   
+    for item in indi:
+        print(item.id)
+        amenity = Amenity.objects.get(id=item.amenity.id)
+        entry = {}
+        entry["type"] = "individual"
+        entry["time_of_slot"] = str(item.time_of_slot)
+        entry["duration_of_booking"] = item.duration_of_booking
+        entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
+        entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
+        json_entry = json.dumps(entry)
+        bookings.append(json_entry)
+    
+
+    for item in groups:
+        bookings_groups = GroupBooking.objects.filter(booker=item.id)
+        group_entry = {}
+        group_entry["name"] = item.name
+        group_entry["members"] = [member.id for member in item.member.all()]  # Convert ManyToMany to a list of IDs
+        group_entries = []
+        
+        for booking in bookings_groups:
+            amenity = Amenity.objects.get(id=booking.amenity.id)
+            entry = {}
+            entry["type"] = "group"
+            entry["time_of_slot"] = str(booking.time_of_slot)
+            entry["duration_of_booking"] = booking.duration_of_booking
+            entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
+            entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
+            entry["group"] = group_entry
+            group_entries.append(entry)
+        
+        bookings.extend(group_entries)
+
+    return Response(bookings)
