@@ -18,11 +18,15 @@ class TeamAdminPermission(permissions.IsAdminUser):
 
 
 
-class AmenityHeadPermisson(permissions.IsAdminUser):
+class AmenityHeadPermission(permissions.IsAuthenticated):
     def has_permission(self, request, view):
-        token = request.data["id"]
-        me = ModUser.objects.get(id=token)
-        if(me != None):
-            return True
+        token = request.data.get("token")
+        if(request.method == "GET"):
+            raise APIException("Get not allowed")
         else:
-            raise APIException("User is not admin")
+            token = request.data["token"]
+            me = ModUser.objects.filter(id=token).exists()
+            if(me):
+                return me
+            else:
+                raise APIException("Not admin")
