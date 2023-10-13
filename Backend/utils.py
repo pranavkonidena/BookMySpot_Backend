@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,ValidEmails,GroupBooking,Event,numbers
+from Backend.models import User,Group,Team,Amenity,IndividualBooking,ModUser,freeSlots,GroupBooking,Event,numbers
 from rest_framework.exceptions import APIException
 import datetime
 def create_user(name , enrollnum):
@@ -40,24 +40,6 @@ def addMemberToTeam(teamname , member , admin):
             team[0].members_id.add(member)
     team[0].save()
 
-def getAvailableSlots(name , duration , venue , time):
-    amenity = Amenity.objects.all()
-    if(name != ""):
-        amenity = Amenity.objects.filter(name=name)
-    if(venue != ""):
-        amenity = Amenity.objects.filter(venue=venue)
-    if(time != ""):
-        amenity = Amenity.objects.filter(freeslots=time)
-    
-    #idea is every hrs into minutes and then maintain bool for each
-    #better version in list of tuples
-    #or another idea is store it in array (start array , end array , i , i+1)
-    #notify that amenity is empty
-
-
-
-
-
 import math
 def convertIntoTime(a):
     a = a*15
@@ -87,79 +69,61 @@ def GetSlot(duration ,date ,*args, **kwargs):
     if(not 'location' in kwargs and not 'amenity' in kwargs):
         amenity = Amenity.objects.all()
     full_final_times_with_id = []
-    for j in range(len(amenity)):
+    for j in range(1,len(amenity)+1):
         empty = []
-        x = amenity[j]
-        x = x.freeslots.all()
+        x = freeSlots.objects.filter(amenity_id=amenity[j].id)
         for i in range(len(x)):
-            if(x[i].date.month == date.month and x[i].date.year == date.year and x[i].date.day == date.day):
-                empty.append(x[i].id)
+            if(x[i].date.year == date.year and x[i].date.month==date.month and x[i].date.day==date.day):
+                empty.append(x[i].slots.all())
         if(len(empty) == 0):
             return []
-        else:
-
+        else:     
             count=0
             booking = []
             all_booking = []
-            prev = empty[0]-1
             for item in empty:
-                if(item-prev==1):
-                    count += 1
-                    booking.append(item)
-                else:
-                    if count < scaled_duration:
-                        count = 1
-                        booking = []
-                        booking.append(item)
+                prev = item[0].value-1
+                for i in range(len(item)):
+                    if(item[i].value-prev==1):
+                        count += 1
+                        booking.append(item[i].value)
                     else:
-                        count = 1
-                        all_booking.append(booking)
-                        booking = []
-                        booking.append(item)
-                prev = item
-            if(len(booking) >= scaled_duration):
-                all_booking.append(booking)
-            
-            final_booking = []
-            for item in all_booking:
-                if(len(item) > scaled_duration):
-                    for element in item:
-                        if element+scaled_duration-1 in item:
-                            temp = []
-                            for i in range(int(element),int(element+scaled_duration)):
-                                temp.append(i)
-                            final_booking.append(temp)
-                else:
-                    final_booking.append(item)
+                        if count < scaled_duration:
+                            count = 1
+                            booking = []
+                            booking.append(item[i].value)
+                        else:
+                            count = 1
+                            all_booking.append(booking)
+                            booking = []
+                            booking.append(item[i].value)
+                    prev = item[i].value
+                if(len(booking) >= scaled_duration):
+                    all_booking.append(booking)
+        
+                final_booking = []
+                for item in all_booking:
+                    if(len(item) > scaled_duration):
+                        for element in item:
+                            if element+scaled_duration-1 in item:
+                                temp = []
+                                for i in range(int(element),int(element+scaled_duration)):
+                                    temp.append(i)
+                                final_booking.append(temp)
+                    else:
+                        final_booking.append(item)
 
 
-            final_times = []
-            for item in final_booking:
-                timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
-                final_times.append(timestamp)
-            entry = {}
-            entry["id"] = amenity[j].id
-            entry["free_slots"] = final_times
-            full_final_times_with_id.append(entry)
-        return full_final_times_with_id    
-    
-
-
-
-def setInitialFreeSlots():
-    amenity = Amenity.objects.filter(id=2)
-    # # for item in amenity:
-    # #     if(not item.freeslots.contains(96)):
-    # #         item.freeslots = [i for i in range(1,97)]
-    # #     item.save()
-    for i in range(1,57):
-        amenity[0].freeslots.add(i)
-    amenity[0].save()
-    # for i in range(1,57):
-    #     number = numbers()
-    #     number.id = i
-    #     number.save()
-
+                final_times = []
+                for item in final_booking:
+                    timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
+                    final_times.append(timestamp)
+                entry = {}
+                entry["id"] = amenity[j].id
+                entry["free_slots"] = final_times
+                full_final_times_with_id.append(entry)
+            return full_final_times_with_id    
+                
 import os
 import requests
 from dotenv import load_dotenv
@@ -244,19 +208,20 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
     result_list = result.split(",")
     start = int(result_list[0])
     end = int(result_list[1])
-    amenity = Amenity.objects.get(id=amenity_id)
     duration_slot = int((end-start)*15)
-    x = amenity.freeslots.all()
+    x = freeSlots.objects.filter(amenity_id=amenity_id)
     for i in range(len(x)):
         if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
             if(start == 0):
-                for i in range(start,end+1):
-                    amenity.freeslots.remove(i)
-                amenity.save()
+                for j in range(start+1,end+1):
+                    n = numbers.objects.get(value=j)
+                    x[i].slots.remove(n)
+                x[i].save()
             else:
-                for i in range(start+1,end+1):
-                    amenity.freeslots.remove(i)
-                amenity.save()
+                for j in range(start+1,end+1):
+                    n = numbers.objects.get(value=j)
+                    x[i].slots.remove(n)
+                x[i].save()
 
 
     booking = IndividualBooking()
@@ -282,13 +247,16 @@ def cancelIndiRes(booking_id):
     duration_of_time = booking[0].duration_of_booking
     start_conv = int(invconvertTimeSingle(start_time))
     end_conv = start_conv + int(int(duration_of_time)/15)
-    amenity = Amenity.objects.get(id=amenity_id)
-    print(len(amenity.freeslots.all()))
+    slots = freeSlots.objects.filter(amenity_id=amenity_id)
+    for i in range(len(slots)):
+        if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
+            slot = slots[i]
     for i in range(start_conv,end_conv+1):
-        if(i not in amenity.freeslots.all()):
-            amenity.freeslots.add(i)
+        if(i not in slot.slots.all()):
+            n = numbers.objects.get(value=i)
+            slot.slots.add(n)
     booking.delete()
-    amenity.save()
+    slot.save()
 
    
 def AuthForHead(email , password):
@@ -311,20 +279,22 @@ def groupReservation(group_id , start_time , end_time ,amenity_id,date):
     result_list = result.split(",")
     start = int(result_list[0])
     end = int(result_list[1])
-
-    amenity = Amenity.objects.get(id=amenity_id)
-    x = amenity.freeslots.all()
+    
+    slots = freeSlots.objects.filter(amenity_id = amenity_id)
+    for i in range(len(slots)):
+        if(slots[i].date.month == date.month and slots[i].date.day == date.day and slots[i].date.year == date.year):
+            slot = slots[i]
     duration_slot = int((end-start)*15)
-    for i in range(len(x)):
-        if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
-            if(start == 0):
-                for i in range(start,end+1):
-                    amenity.freeslots.remove(i)
-                amenity.save()
-            else:
-                for i in range(start+1,end+1):
-                    amenity.freeslots.remove(i)
-                amenity.save()
+    if(start == 0):
+        for i in range(start+1,end+1):
+            n = numbers.objects.get(value=i)
+            slot.slots.remove(n)
+        slot.save()
+    else:
+        for i in range(start+1,end+1):
+            n = numbers.objects.get(value=i)
+            slot.slots.remove(n)
+        slot.save()
 
 
     booking = GroupBooking()

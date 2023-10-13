@@ -36,6 +36,5 @@ def groupReservationView(request):
     format = '%b %d %Y'
     datetime_str = datetime.datetime.strptime(date , format)
     data = groupReservation(group_id,start_time,end_time,amenity_id,datetime_str)
-
     data = GroupBookingSerializer(data)
     return Response(data.data)

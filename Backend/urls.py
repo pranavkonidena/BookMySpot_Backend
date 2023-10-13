@@ -19,6 +19,7 @@ urlpatterns = [
     path("booking/group/bookSlot" , group_views.groupReservationView),
     path("amenity/head/auth" , amenityhead_views.HeadAuth),
     path("amenity/head/makeEvent" ,amenityhead_views.CreateEventView),
+    path("amenity/head/setSlots" ,amenityhead_views.setSlotsView),
     path("event/register" , team_views.makeTeamReservation),
     path("event/cancel" , team_views.CancelTeamReservation),
     path("event/getSlots" , views.EventsList.as_view()),

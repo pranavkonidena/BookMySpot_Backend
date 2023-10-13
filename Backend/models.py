@@ -40,7 +40,6 @@ class Amenity(models.Model):
     admin = models.ForeignKey("ModUser", on_delete=models.CASCADE)
     start_time = models.TimeField(default=time(8, 0))
     end_time = models.TimeField(default=time(22, 0))
-    freeslots = models.ManyToManyField("freeslots")
     
 class Team(models.Model):
     #Team ID will be automatically generated
@@ -79,6 +78,7 @@ class numbers(models.Model):
     value = models.PositiveIntegerField()
 
 class freeSlots(models.Model):
+    amenity = models.ForeignKey("Amenity" , on_delete=models.CASCADE , null=True)
     date = models.DateField(primary_key=True)
     slots = models.ManyToManyField("numbers")
 
