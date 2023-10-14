@@ -319,42 +319,64 @@ def checkForEvents(amenity_id):
         return False
     else:
         event_times = {}
-        for item in events:
-            event_times[item.name] = (item.time_of_occourence_start,item.time_of_occourence_end)
+        item = events[len(events)-1]
+        event_times[item.name] = (item.time_of_occourence_start,item.time_of_occourence_end)
         return event_times 
 
 def removeSlotsWhileEvent(amenity_id):
     result = checkForEvents(amenity_id)
-    print(result)
-    start_times = []
-    end_times = []
-    if(result == False):
-        pass
+    if result == False:
+        print("FALSE")
     else:
         for item in result:
             (start_time , end_time) = result[item]
-            start_times.append(start_time)
-            end_times.append(end_time)
-    amenity = Amenity.objects.get(id=amenity_id)
-    print(f"{len(amenity.freeslots.all())} before")
-    for start_time in start_times:
-        for end_time in end_times:
-            print(end_time)
-            start_conv = int(invconvertTimeSingle(start_time))
-            end_conv = int(invconvertTimeSingle(end_time))
-            print(f"START_CONV {start_conv}")
-            print(f"END_CONV {end_conv}")
-            for i in range(start_conv,end_conv+1):
-                amenity.freeslots.remove(i)
-            end_times.remove(end_time)
-            break
-            
-        
- 
+            if(start_time.date() == end_time.date()):
+                start_conv = int(invconvertTimeSingle(start_time))
+                end_conv = int(invconvertTimeSingle(end_time))
+                fe = freeSlots.objects.filter(amenity_id=amenity_id)
+                fe = fe.get(date=start_time.date())
+                for i in range(start_conv+1,end_conv+1):
+                    n = numbers.objects.get(value=i)
+                    if n in fe.slots.all():
+                        fe.slots.remove(n)
+                fe.save()
+            else:
+                start_conv = int(invconvertTimeSingle(start_time))
+                end_conv = int(invconvertTimeSingle(end_time))
+                #First remove all slots from start_conv to end then from start to end_conv
+                fe = freeSlots.objects.filter(amenity_id=amenity_id)
+                current_date = start_time.date()
+                while(current_date != end_time.date()):
+                    fen = fe.get(date=current_date)
+                    if current_date == start_time.date():
+                        for i in range(start_conv,57):
+                            n = numbers.objects.get(value=i)
+                            if n in fen.slots.all():
+                                fen.slots.remove(n)
+                        fen.save()
+                    elif(current_date != end_time.date()):
+                        fea = fe.get(date=current_date)
+                        for i in range(1,57):
+                            n = numbers.objects.get(value=i)
+                            if n in fea.slots.all():
+                                fea.slots.remove(n)
+                        fea.save()
+                    else:
+                        fec=fe.get(date=current_date)
+                        for i in range(1,end_conv+1):
+                            n = numbers.objects.get(value=i)
+                            if(n in fec.slots.all()):
+                                fec.slots.remove(n)
+                        fec.save()
+                    current_date = start_time.date() + datetime.timedelta(days=1)
 
-    amenity.save()
+                            
 
-    print(f"{len(amenity.freeslots.all())} after")
+
+
+
+
+
 
 
 def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occourence_end):

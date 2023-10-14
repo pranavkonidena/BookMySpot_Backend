@@ -25,8 +25,8 @@ def CreateEventView(request):
     if(len(amenity) == 0):
         return Response("Amenity not found")
     else:
-        amenity_id = amenity.id
-        print(amenity.name)
+        amenity_id = amenity[0].id
+        print(amenity[0].name)
         event_name = request.data["event_name"]
         time_of_occourence_start = request.data["time_start"]
         time_of_occourence_end = request.data["time_end"]
