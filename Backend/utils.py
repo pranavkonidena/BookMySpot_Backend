@@ -370,14 +370,6 @@ def removeSlotsWhileEvent(amenity_id):
                         fec.save()
                     current_date = start_time.date() + datetime.timedelta(days=1)
 
-                            
-
-
-
-
-
-
-
 
 def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occourence_end):
     event = Event()

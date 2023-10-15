@@ -147,6 +147,7 @@ class EventsList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 import json
+import pytz
 @api_view(["GET"])
 def getBooking(request):
     user_id = request.query_params.get("id")
@@ -167,7 +168,7 @@ def getBooking(request):
         json_entry = json.dumps(entry)
         bookings.append(json_entry)
     
-
+    time = datetime.datetime.now()
     for item in groups:
         bookings_groups = GroupBooking.objects.filter(booker=item.id)
         group_entry = {}
@@ -176,15 +177,18 @@ def getBooking(request):
         group_entries = []
         
         for booking in bookings_groups:
-            amenity = Amenity.objects.get(id=booking.amenity.id)
-            entry = {}
-            entry["type"] = "group"
-            entry["time_of_slot"] = str(booking.time_of_slot)
-            entry["duration_of_booking"] = booking.duration_of_booking
-            entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
-            entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
-            entry["group"] = group_entry
-            group_entries.append(entry)
+            time_diff = booking.time_of_slot - pytz.timezone("Asia/Kolkata").localize(time)
+            if(booking.time_of_slot >  pytz.timezone("Asia/Kolkata").localize(time)):
+            # if(time_diff > 0):
+                amenity = Amenity.objects.get(id=booking.amenity.id)
+                entry = {}
+                entry["type"] = "group"
+                entry["time_of_slot"] = str(booking.time_of_slot)
+                entry["duration_of_booking"] = booking.duration_of_booking
+                entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
+                entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
+                entry["group"] = group_entry
+                group_entries.append(entry)
         
         bookings.extend(group_entries)
 
