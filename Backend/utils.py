@@ -163,7 +163,10 @@ def doOauth(code):
     except:
         user.enroll_number = enrollNum
         user.name = name
-        user.profile_pic = display_pic
+        if(display_pic == None):
+            user.profile_pic = "https://github-production-user-asset-6210df.s3.amazonaws.com/122373207/275466089-4e5a891c-8afd-4e9b-a0da-04ff0c39687c.png"
+        else:
+            user.profile_pic = display_pic
         user.branch = branch_name
         user.save()
         return user.id

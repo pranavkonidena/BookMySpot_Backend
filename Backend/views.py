@@ -177,7 +177,6 @@ def getBooking(request):
         group_entries = []
         
         for booking in bookings_groups:
-            time_diff = booking.time_of_slot - pytz.timezone("Asia/Kolkata").localize(time)
             if(booking.time_of_slot >  pytz.timezone("Asia/Kolkata").localize(time)):
             # if(time_diff > 0):
                 amenity = Amenity.objects.get(id=booking.amenity.id)

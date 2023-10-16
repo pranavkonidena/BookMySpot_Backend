@@ -9,7 +9,7 @@ class User(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
     name = models.CharField(max_length=255)
     enroll_number = models.IntegerField()
-    profile_pic = models.CharField(max_length=500 , default="")
+    profile_pic = models.CharField(max_length=500)
     branch = models.CharField(max_length=255)
 
 
