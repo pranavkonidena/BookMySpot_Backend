@@ -252,14 +252,15 @@ def cancelIndiRes(booking_id):
     end_conv = start_conv + int(int(duration_of_time)/15)
     slots = freeSlots.objects.filter(amenity_id=amenity_id)
     for i in range(len(slots)):
+        
         if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
-            slot = slots[i]
-    for i in range(start_conv,end_conv+1):
-        if(i not in slot.slots.all()):
-            n = numbers.objects.get(value=i)
-            slot.slots.add(n)
+            for i in range(start_conv,end_conv+1):
+                if(i not in slots[i].slots.all()):
+                    n = numbers.objects.get(value=i)
+                    slots[i].slots.add(n)
+        
+        slots[i].save()
     booking.delete()
-    slot.save()
 
    
 def AuthForHead(email , password):
