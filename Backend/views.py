@@ -1,5 +1,5 @@
-from Backend.models import User,IndividualBooking,Event,GroupBooking,Amenity,Group
-from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer,EventSerializer
+from Backend.models import User,IndividualBooking,Event,GroupBooking,Amenity,Group,freeSlots
+from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer,EventSerializer,AmenitySerializer
 from rest_framework import generics
 from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
 from django.http import HttpResponse
@@ -47,7 +47,7 @@ def serialize_datetime(obj):
 @api_view(['POST'])
 def getAvailableSlots(request):
     date = request.data["date"]
-    format = '%b %d %Y'
+    format = '%Y-%m-%d'
     datetime_str = datetime.datetime.strptime(date , format)
 
     if("location" in request.data and "amenity" in request.data):
@@ -72,30 +72,22 @@ def getAvailableSlots(request):
                     minutes = string_as_list[1]
                     if(abs(hours-int(start_time.hour)) < 1):
                         data2 = {
-                                'start_time': start_time.strftime('%H:%M'),
-                                'end_time': end_time.strftime('%H:%M'),
+                                'start_time': str(start_time.strftime('%H:%M')),
+                                'end_time': str(end_time.strftime('%H:%M')),
                                 'amenity_id' : item["id"],
                                     }
-                        serializer = TimeSerializer(data=data2)
-                        if serializer.is_valid():
-                            serialized_data.append(serializer.validated_data)
-                        else:
-                            print(serializer.errors)
+                        serialized_data.append(data2)
             return Response(serialized_data)
         else:
             for item in data:
                 for free_slot in item["free_slots"]:
                     start_time , end_time = free_slot
                     data2 = {
-                            'start_time': start_time.strftime('%H:%M'),
-                            'end_time': end_time.strftime('%H:%M'),
+                            'start_time': str(start_time.strftime('%H:%M')),
+                            'end_time': str(end_time.strftime('%H:%M')),
                             'amenity_id' : item["id"],
                                 }
-                    serializer = TimeSerializer(data=data2)
-                    if serializer.is_valid():
-                        serialized_data.append(serializer.validated_data)
-                    else:
-                        print(serializer.errors)
+                    serialized_data.append(data2)
             return Response(serialized_data)
 
 from django.http import HttpResponseRedirect
@@ -130,7 +122,7 @@ def makeIndiReservation(request):
     end_time = request.data["end_time"]
     id_user = request.data["id_user"]
     date = request.data["date"]
-    format = '%b %d %Y'
+    format = '%Y-%m-%d'
     date_time_str = datetime.datetime.strptime(date , format)
     data = makeIndiRes(id_user,amenity_id,start_time,end_time,date_time_str)
 
@@ -147,28 +139,31 @@ class EventsList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 import json
-import pytz
-@api_view(["GET"])
+@api_view(["POST"])
 def getBooking(request):
-    user_id = request.query_params.get("id")
+    user_id = request.data["id"]
+    date = request.data["date"]
+    date = datetime.datetime.strptime(date , '%Y-%m-%d')
     indi = IndividualBooking.objects.filter(booker_id=user_id)
     groups = Group.objects.filter(member=user_id)
-   
     bookings = []
-   
-    for item in indi:
-        print(item.id)
-        amenity = Amenity.objects.get(id=item.amenity.id)
-        entry = {}
-        entry["type"] = "individual"
-        entry["time_of_slot"] = str(item.time_of_slot)
-        entry["duration_of_booking"] = item.duration_of_booking
-        entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
-        entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
-        json_entry = json.dumps(entry)
-        bookings.append(json_entry)
-    
     time = datetime.datetime.now()
+    for item in indi:
+        print(time)
+        if(item.time_of_slot.day == date.day and item.time_of_slot.month == date.month and item.time_of_slot.year == date.year):
+            print(item.id)
+            amenity = Amenity.objects.get(id=item.amenity.id)
+            entry = {}
+            entry["id"] = item.id
+            entry["type"] = "individual"
+            entry["time_of_slot"] = str(item.time_of_slot)
+            entry["duration_of_booking"] = item.duration_of_booking
+            entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
+            entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
+            json_entry = json.dumps(entry)
+            bookings.append(json_entry)
+    
+    
     for item in groups:
         bookings_groups = GroupBooking.objects.filter(booker=item.id)
         group_entry = {}
@@ -177,10 +172,12 @@ def getBooking(request):
         group_entries = []
         
         for booking in bookings_groups:
-            if(booking.time_of_slot >  pytz.timezone("Asia/Kolkata").localize(time)):
+            print(booking.time_of_slot)
+            if(booking.time_of_slot.day ==  date.day and booking.time_of_slot.month == date.month and booking.time_of_slot.year == date.year):
             # if(time_diff > 0):
                 amenity = Amenity.objects.get(id=booking.amenity.id)
                 entry = {}
+                entry["id"] = booking.id
                 entry["type"] = "group"
                 entry["time_of_slot"] = str(booking.time_of_slot)
                 entry["duration_of_booking"] = booking.duration_of_booking
@@ -192,3 +189,15 @@ def getBooking(request):
         bookings.extend(group_entries)
 
     return Response(bookings)
+
+class AmenitiesList(generics.ListAPIView):
+    serializer_class = AmenitySerializer
+    
+    def get_queryset(self):
+        queryset = Amenity.objects.all()
+        id = self.request.query_params.get("id")
+        if(id is not None):
+            queryset = queryset.filter(id=id)
+        
+        return queryset
+

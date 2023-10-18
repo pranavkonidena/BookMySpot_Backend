@@ -245,6 +245,7 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
 
 def cancelIndiRes(booking_id):
     booking = IndividualBooking.objects.filter(id=booking_id)
+    print(booking)
     amenity_id = booking[0].amenity.id
     start_time = booking[0].time_of_slot
     duration_of_time = booking[0].duration_of_booking
@@ -252,11 +253,10 @@ def cancelIndiRes(booking_id):
     end_conv = start_conv + int(int(duration_of_time)/15)
     slots = freeSlots.objects.filter(amenity_id=amenity_id)
     for i in range(len(slots)):
-        
         if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
-            for i in range(start_conv,end_conv+1):
-                if(i not in slots[i].slots.all()):
-                    n = numbers.objects.get(value=i)
+            for j in range(start_conv,end_conv+1):
+                if(j not in slots[i].slots.all()):
+                    n = numbers.objects.get(value=j)
                     slots[i].slots.add(n)
         
         slots[i].save()

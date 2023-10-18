@@ -25,7 +25,7 @@ class IndividualBookingSerializer(serializers.ModelSerializer):
 class AmenitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Amenity
-        fields = ["name" , "id" , "allowed" , "venue" , "freeslots" , "start_time" , "end_time"]
+        fields = ["name" , "id" , "venue", "start_time" , "end_time"]
 
 class TimeSerializer(serializers.Serializer):
     start_time = serializers.TimeField()
