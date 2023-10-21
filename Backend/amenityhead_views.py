@@ -1,9 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
-from Backend.models import ModUser,Amenity,freeSlots,numbers
+from Backend.models import ModUser,Amenity,freeSlots,numbers,IndividualBooking,GroupBooking,User
 from Backend.utils import AuthForHead,createEvent
 from Backend.permissions import AmenityHeadPermission
-from Backend.serializers import EventSerializer
+from Backend.serializers import EventSerializer,IndividualBookingSerializer,GroupBookingSerializer
+from Backend.utils import cancelIndiRes
 import datetime
 @api_view(["POST"])
 def HeadAuth(request):
@@ -11,7 +12,8 @@ def HeadAuth(request):
     password = request.data["password"]
     result = AuthForHead(email,password = password)
     if(result != False):
-        return Response(result,status=200)
+        m = ModUser.objects.get(email=email)
+        return Response(m.id,status=200)
     else:
         return Response("Not an admin head",status=401)
 
@@ -71,3 +73,32 @@ def setSlotsView(request):
         current_date = current_date + datetime.timedelta(days=1)
     
     return Response("Set")
+
+
+@api_view(["GET"])
+def listallBookings(request):
+    admin_token = request.query_params.get("id")
+    me = ModUser.objects.get(id=admin_token)
+    a = Amenity.objects.get(admin=me)
+   
+
+    i = IndividualBooking.objects.filter(amenity=a)
+    g = GroupBooking.objects.filter(amenity=a)
+
+    total_bookings =  []
+    for item in i:
+        temp = IndividualBookingSerializer(item)
+        temp_data = temp.data
+        temp_data["type"] = "Individual"
+        total_bookings.append(temp_data)
+    
+    for item in g:
+        temp = GroupBookingSerializer(item)
+        temp_data = temp.data
+        temp_data["type"] = "Group"
+        total_bookings.append(temp_data)
+    
+    return Response(total_bookings)
+
+
+

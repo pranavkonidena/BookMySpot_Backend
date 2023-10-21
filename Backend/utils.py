@@ -60,16 +60,17 @@ def GetSlot(duration ,date ,*args, **kwargs):
     if('location' in kwargs and 'amenity' in kwargs):
         amenity = Amenity.objects.filter(venue=kwargs["location"])
         print(f"GET{len(amenity)}")
-        amenity = amenity.filter(name=kwargs["amenity"])
+        amenity = amenity.filter(id=kwargs["amenity"])
         print(f"GET{len(amenity)}")
     elif('amenity' in kwargs):
-        amenity = Amenity.objects.filter(name=kwargs["amenity"])
+        amenity = Amenity.objects.filter(id=kwargs["amenity"])
+        print(len(amenity))
     elif("location" in kwargs):
         amenity =  Amenity.objects.filter(venue=kwargs["location"])
     if(not 'location' in kwargs and not 'amenity' in kwargs):
         amenity = Amenity.objects.all()
     full_final_times_with_id = []
-    for j in range(1,len(amenity)+1):
+    for j in range(0,len(amenity)+1):
         empty = []
         x = freeSlots.objects.filter(amenity_id=amenity[j].id)
         for i in range(len(x)):
@@ -243,6 +244,36 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
     data["id"] = booking.id
     return data
 
+def cancelGroupRes(booking_id):
+    booking = GroupBooking.objects.filter(id=booking_id)
+    print(booking)
+    amenity_id = booking[0].amenity.id
+    start_time = booking[0].time_of_slot
+    duration_of_time = booking[0].duration_of_booking
+    start_conv = int(invconvertTimeSingle(start_time))
+    end_conv = start_conv + int(int(duration_of_time)/15)
+    print(f"START_CONV{start_conv}")
+    print(f"END_CONV{end_conv}")
+    slots = freeSlots.objects.filter(amenity_id=amenity_id)
+    for i in range(len(slots)):
+        if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
+            if start_conv != 0:
+                for j in range(start_conv,end_conv+1):
+                    if(j not in slots[i].slots.all()):
+                        n = numbers.objects.get(value=j)
+                        slots[i].slots.add(n)
+            else:
+                for j in range(start_conv+1,end_conv+1):
+                    if(j not in slots[i].slots.all()):
+                        n = numbers.objects.get(value=j)
+                        slots[i].slots.add(n)
+
+        
+        slots[i].save()
+    booking.delete()
+
+
+
 def cancelIndiRes(booking_id):
     booking = IndividualBooking.objects.filter(id=booking_id)
     print(booking)
@@ -251,13 +282,22 @@ def cancelIndiRes(booking_id):
     duration_of_time = booking[0].duration_of_booking
     start_conv = int(invconvertTimeSingle(start_time))
     end_conv = start_conv + int(int(duration_of_time)/15)
+    print(f"START_CONV{start_conv}")
+    print(f"END_CONV{end_conv}")
     slots = freeSlots.objects.filter(amenity_id=amenity_id)
     for i in range(len(slots)):
         if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
-            for j in range(start_conv,end_conv+1):
-                if(j not in slots[i].slots.all()):
-                    n = numbers.objects.get(value=j)
-                    slots[i].slots.add(n)
+            if start_conv != 0:
+                for j in range(start_conv,end_conv+1):
+                    if(j not in slots[i].slots.all()):
+                        n = numbers.objects.get(value=j)
+                        slots[i].slots.add(n)
+            else:
+                for j in range(start_conv+1,end_conv+1):
+                    if(j not in slots[i].slots.all()):
+                        n = numbers.objects.get(value=j)
+                        slots[i].slots.add(n)
+
         
         slots[i].save()
     booking.delete()

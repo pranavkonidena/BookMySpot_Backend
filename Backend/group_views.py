@@ -1,7 +1,7 @@
 from Backend.models import Group
 from Backend.serializers import GroupSerializer,GroupBookingSerializer
 from rest_framework import generics
-from Backend.utils import  addtoGrp,groupReservation
+from Backend.utils import  addtoGrp,groupReservation,cancelGroupRes
 from django.http import HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
@@ -38,3 +38,10 @@ def groupReservationView(request):
     data = groupReservation(group_id,start_time,end_time,amenity_id,datetime_str)
     data = GroupBookingSerializer(data)
     return Response(data.data)
+
+@api_view(["GET"])
+def cancelGroupReservation(request):
+    booking_id = request.query_params.get("booking_id")
+    cancelGroupRes(booking_id)
+    return Response("Ok")
+    

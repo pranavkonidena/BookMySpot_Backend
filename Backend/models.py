@@ -11,7 +11,7 @@ class User(models.Model):
     enroll_number = models.IntegerField()
     profile_pic = models.CharField(max_length=500)
     branch = models.CharField(max_length=255)
-
+    
 
 class Group(models.Model):
     member = models.ManyToManyField("User",related_name="groups" , blank=True)

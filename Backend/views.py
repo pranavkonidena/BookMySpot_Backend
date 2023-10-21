@@ -60,8 +60,8 @@ def getAvailableSlots(request):
         data = GetSlot(request.data["duration"],datetime_str)
     serialized_data = []
     print(len(serialized_data))
-    if(len(data) == 0):
-        return Response("No slots")
+    if(data is None):
+        return Response("[]")
     else:
         if("start_time" in request.data):
             for item in data:
@@ -201,3 +201,13 @@ class AmenitiesList(generics.ListAPIView):
         
         return queryset
 
+class BookingDetails(generics.ListAPIView):
+    serializer_class = IndividualBookingSerializer
+
+    def get_queryset(self):
+        queryset = IndividualBooking.objects.all()
+        id = self.request.query_params.get("id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
+        
+        return queryset
