@@ -7,8 +7,9 @@ def create_user(name , enrollnum):
     user.enroll_number = enrollnum
     user.save()
 
-
+import json
 def addtoGrp(grpname , memberID):
+    memberID = json.loads(memberID)
     group = Group()
     allgrps = Group.objects.filter(name = grpname)
     if(not allgrps):
@@ -17,10 +18,13 @@ def addtoGrp(grpname , memberID):
         for item in memberID:
             group.member.add(item)
         group.save()
+        return group.id
     else:
         for item in memberID:
             allgrps[0].member.add(item)
         allgrps[0].save()
+        return allgrps[0].id
+    
 
 def createTeam(teamname , admin_id):
     team = Team()
@@ -50,6 +54,8 @@ def convertIntoTime(a):
     return datetime.time(hour=hours,minute=minutes)
 
 all_bookings = []
+
+from datetime import timedelta
 
 
 def GetSlot(duration ,date ,*args, **kwargs):
@@ -117,8 +123,10 @@ def GetSlot(duration ,date ,*args, **kwargs):
 
                 final_times = []
                 for item in final_booking:
-                    timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
-                    final_times.append(timestamp)
+                    if((datetime.datetime.now()+timedelta(hours=10,minutes=30)).time() < convertIntoTime(item[0]-1)):
+                        timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
+                        final_times.append(timestamp)
+                    
                 entry = {}
                 entry["id"] = amenity[j].id
                 entry["free_slots"] = final_times
@@ -431,7 +439,7 @@ def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occ
     data["name"] = event_name
     data["time_of_occourence_start"] = time_of_occourence_start
     data["time_of_occourence_end"] = time_of_occourence_end
-
+    data["team"] = []
     return data
 
 

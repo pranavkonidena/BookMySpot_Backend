@@ -41,5 +41,5 @@ class GroupBookingSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ["amenity_id" , "name" ,  "time_of_occourence_start" , "time_of_occourence_end"]
+        fields = ["amenity_id" , "name" ,  "time_of_occourence_start" , "time_of_occourence_end" , "team"]
 

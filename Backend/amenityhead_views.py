@@ -21,7 +21,6 @@ def HeadAuth(request):
 @api_view(["POST"])
 @permission_classes([AmenityHeadPermission])
 def CreateEventView(request): 
-  
     token = request.data["token"]
     amenity = Amenity.objects.filter(admin=token)
     if(len(amenity) == 0):

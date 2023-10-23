@@ -23,8 +23,8 @@ class GroupList(generics.ListAPIView):
 
 @api_view(['POST'])
 def memberAdd(request):
-    addtoGrp(request.data["name"] , request.data["id"])
-    return Response(request.data["id"])
+    grp_id = addtoGrp(request.data["name"] , request.data["id"])
+    return Response(grp_id)
 
 @api_view(['POST'])
 def groupReservationView(request):

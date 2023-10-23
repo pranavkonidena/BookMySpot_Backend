@@ -21,10 +21,11 @@ urlpatterns = [
     path("booking/group/cancelSlot" , group_views.cancelGroupReservation),
     path("amenity/head/auth" , amenityhead_views.HeadAuth),
     path("amenity/getAll" , views.AmenitiesList.as_view()),
+    path("amenity/getFree" , views.getAvailableAmenities),
     path("amenity/getAllBookings" , amenityhead_views.listallBookings),
     path("amenity/head/makeEvent" ,amenityhead_views.CreateEventView),
     path("amenity/head/setSlots" ,amenityhead_views.setSlotsView),
     path("event/register" , team_views.makeTeamReservation),
     path("event/cancel" , team_views.CancelTeamReservation),
-    path("event/getSlots" , views.EventsList.as_view()),
+    path("event/getAll" , views.EventsList.as_view()),
 ]   

@@ -1,4 +1,4 @@
-from Backend.models import User,IndividualBooking,Event,GroupBooking,Amenity,Group,freeSlots
+from Backend.models import User,IndividualBooking,Event,GroupBooking,Amenity,Group,ModUser,freeSlots
 from Backend.serializers import UserSerializer,IndividualBookingSerializer,TimeSerializer,EventSerializer,AmenitySerializer
 from rest_framework import generics
 from Backend.utils import GetSlot,doOauth,makeIndiRes,cancelIndiRes
@@ -136,8 +136,21 @@ def cancelIndiReservation(request):
     return Response("OK")
 
 class EventsList(generics.ListAPIView):
-    queryset = Event.objects.all()
     serializer_class = EventSerializer
+    
+    def get_queryset(self):
+        queryset = Event.objects.all()
+        token = self.request.query_params.get("id")
+        if(token != None):
+            me = ModUser.objects.get(id=token)
+            a = Amenity.objects.get(admin=me)
+            queryset = queryset.filter(amenity=a)
+        
+        
+        
+    
+        return queryset
+
 import json
 @api_view(["POST"])
 def getBooking(request):
@@ -211,3 +224,22 @@ class BookingDetails(generics.ListAPIView):
             queryset = queryset.filter(id=id)
         
         return queryset
+
+@api_view(["POST"])
+def getAvailableAmenities(request):
+    date = request.data["date"]
+    date = datetime.datetime.strptime(date , "%Y-%m-%d")
+
+    a = Amenity.objects.all()
+    final_list = []
+    for item in a:
+        try:
+            f = freeSlots.objects.filter(amenity=item)
+            if f is not None:
+                f = f.get(date=date)
+                if(len(f.slots.all()) != 0):
+                    final_list.append(AmenitySerializer(item).data)
+        except:
+            pass
+    return Response(final_list)
+
