@@ -12,7 +12,7 @@ class TeamAdminPermission(permissions.IsAdminUser):
             else:
                 team = team.filter(admin_id=id_given)
                 if not team:
-                    raise APIException("User not admin of team")
+                    raise APIException("User not admin of team" , status)
                 else:
                     return True
 

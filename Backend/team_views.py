@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent , cancelTeamReservation
 from Backend.permissions import TeamAdminPermission
+from django.db.models import Q
 class TeamListView(generics.ListAPIView):
     serializer_class = TeamSerializer
     def get_queryset(self):
@@ -16,9 +17,16 @@ class TeamListView(generics.ListAPIView):
         queryset = Team.objects.all()
         uid = self.request.query_params.get('id')
         if uid is not None:
-            queryset = queryset.filter(members_id = uid)
+            queryset = queryset.filter(Q(members_id = uid) | Q(admin_id=uid))
+        queryset = queryset.distinct()
         return queryset
-        
+
+class TeamListIDView(generics.ListAPIView):
+    serializer_class = TeamSerializer
+    
+    def get_queryset(self):
+        queryset = Team.objects.filter(id=self.request.query_params.get("id"))
+        return queryset
 
 @api_view(['POST'])
 def createTeamView(request):
@@ -44,6 +52,7 @@ def addMember(request):
 @permission_classes([TeamAdminPermission])
 def makeTeamReservation(request):
     data = addTeamToEvent(request.data["event_id"] , request.data["team_id"])
+    
     return Response("OK")
 
 @api_view(['POST'])
@@ -54,3 +63,9 @@ def CancelTeamReservation(request):
     cancelTeamReservation(name , event_id)
     return Response("Ok")
 
+class TeamswithAdmin(generics.ListAPIView):
+    serializer_class = TeamSerializer
+    def get_queryset(self):
+        id = self.request.query_params.get("id")
+        queryset = Team.objects.filter(admin_id=id)
+        return queryset

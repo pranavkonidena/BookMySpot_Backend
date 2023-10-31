@@ -1,4 +1,4 @@
-from Backend.models import Group
+from Backend.models import Group,GroupBooking
 from Backend.serializers import GroupSerializer,GroupBookingSerializer
 from rest_framework import generics
 from Backend.utils import  addtoGrp,groupReservation,cancelGroupRes
@@ -44,4 +44,11 @@ def cancelGroupReservation(request):
     booking_id = request.query_params.get("booking_id")
     cancelGroupRes(booking_id)
     return Response("Ok")
-    
+
+
+
+class GroupBookingSpecific(generics.ListAPIView):
+    serializer_class = GroupBookingSerializer
+    def get_queryset(self):
+        queryset = GroupBooking.objects.filter(id=self.request.query_params.get("id"))
+        return queryset
