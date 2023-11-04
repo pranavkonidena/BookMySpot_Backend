@@ -1,10 +1,11 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
-from Backend.models import ModUser,Amenity,freeSlots,numbers,IndividualBooking,GroupBooking,User
+from Backend.models import ModUser,Amenity,freeSlots,numbers,IndividualBooking,GroupBooking,Event
 from Backend.utils import AuthForHead,createEvent
 from Backend.permissions import AmenityHeadPermission
-from Backend.serializers import EventSerializer,IndividualBookingSerializer,GroupBookingSerializer
+from Backend.serializers import EventSerializer,IndividualBookingSerializer,GroupBookingSerializer , TeamSerializer
 from Backend.utils import cancelIndiRes
+from rest_framework import generics
 import datetime
 @api_view(["POST"])
 def HeadAuth(request):

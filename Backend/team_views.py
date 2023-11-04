@@ -3,7 +3,7 @@ from Backend.serializers import TeamSerializer
 from rest_framework import generics
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent , cancelTeamReservation
+from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent , cancelTeamReservation , removeMemberFromTeam
 from Backend.permissions import TeamAdminPermission
 from django.db.models import Q
 class TeamListView(generics.ListAPIView):
@@ -50,6 +50,17 @@ def addMember(request):
 
 @api_view(['POST'])
 @permission_classes([TeamAdminPermission])
+def removeMember(request):
+    if request.method == "POST":
+        team_name = request.data["name"]
+        member_id = request.data["member_id"]
+        removeMemberFromTeam(team_name , member_id)
+
+        return Response("Ok")
+
+
+@api_view(['POST'])
+@permission_classes([TeamAdminPermission])
 def makeTeamReservation(request):
     data = addTeamToEvent(request.data["event_id"] , request.data["team_id"])
     
@@ -69,3 +80,12 @@ class TeamswithAdmin(generics.ListAPIView):
         id = self.request.query_params.get("id")
         queryset = Team.objects.filter(admin_id=id)
         return queryset
+
+@api_view(['POST'])
+@permission_classes([TeamAdminPermission])
+def DeleteTeam(request):
+    name = request.data["name"]
+    team = Team.objects.get(name=name)
+    team.delete()
+    # team.save()
+    return Response("Ok")

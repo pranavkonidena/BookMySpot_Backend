@@ -44,6 +44,15 @@ def addMemberToTeam(teamname , member , admin):
             team[0].members_id.add(member)
     team[0].save()
 
+def removeMemberFromTeam(team_name , member):
+    team = Team.objects.filter(name=team_name)
+    if(not team):
+        raise APIException("Team not found")
+    else:
+        user = User.objects.get(id=member)
+        team[0].members_id.remove(user)
+    team[0].save()
+    
 import math
 def convertIntoTime(a):
     a = a*15
@@ -120,13 +129,20 @@ def GetSlot(duration ,date ,*args, **kwargs):
                     else:
                         final_booking.append(item)
 
-
+                current_date = datetime.date(datetime.datetime.today().year , datetime.datetime.today().month , datetime.datetime.today().day)
                 final_times = []
-                for item in final_booking:
-                    if((datetime.datetime.now()+timedelta(hours=10,minutes=30)).time() < convertIntoTime(item[0]-1)):
+                print(current_date)
+                if(current_date.day == date.day):
+                    for item in final_booking:
+                        print("U R REQUESTING TOFSYQ!!!")
+                        if((datetime.datetime.now()+timedelta(hours=10,minutes=30)).time() < convertIntoTime(item[0]-1)):
+                            timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
+                            final_times.append(timestamp)
+                else:
+                    print("U DIDNT CALL ")
+                    for item in final_booking:
                         timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
                         final_times.append(timestamp)
-                    
                 entry = {}
                 entry["id"] = amenity[j].id
                 entry["free_slots"] = final_times

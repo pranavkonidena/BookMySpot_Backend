@@ -140,15 +140,16 @@ class EventsList(generics.ListAPIView):
     
     def get_queryset(self):
         queryset = Event.objects.all()
+        queryset = queryset.filter(time_of_occourence_start__gt = datetime.datetime.now())
         token = self.request.query_params.get("id")
+        id = self.request.query_params.get("event_id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
         if(token != None):
             me = ModUser.objects.get(id=token)
             a = Amenity.objects.get(admin=me)
             queryset = queryset.filter(amenity=a)
         
-        
-        
-    
         return queryset
 
 import json
