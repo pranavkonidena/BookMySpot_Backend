@@ -1,4 +1,4 @@
-from Backend.models import User,Group,Team,IndividualBooking,Amenity,GroupBooking,Event
+from Backend.models import User,Group,Team,IndividualBooking,Amenity,GroupBooking,Event,Message
 from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,3 +43,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ["id","amenity_id" , "name" ,  "time_of_occourence_start" , "time_of_occourence_end" , "team"]
 
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ["sender_id" , "message"]
