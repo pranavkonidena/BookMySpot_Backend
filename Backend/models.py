@@ -11,7 +11,7 @@ class User(models.Model):
     enroll_number = models.IntegerField()
     profile_pic = models.CharField(max_length=500)
     branch = models.CharField(max_length=255)
-    
+    credits = models.IntegerField(default=50)
 
 class Group(models.Model):
     member = models.ManyToManyField("User",related_name="groups" , blank=True)
@@ -40,6 +40,7 @@ class Amenity(models.Model):
     admin = models.ForeignKey("ModUser", on_delete=models.CASCADE)
     start_time = models.TimeField(default=time(8, 0))
     end_time = models.TimeField(default=time(22, 0))
+    credits = models.IntegerField(default=5)
     
 class Team(models.Model):
     #Team ID will be automatically generated

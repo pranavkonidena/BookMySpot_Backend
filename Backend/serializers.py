@@ -4,7 +4,7 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id' , 'name' , 'enroll_number' , 'profile_pic' , 'branch']
+        fields = ['id' , 'name' , 'enroll_number' , 'profile_pic' , 'branch' , 'credits']
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class IndividualBookingSerializer(serializers.ModelSerializer):
 class AmenitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Amenity
-        fields = ["name" , "id" , "venue", "start_time" , "end_time"]
+        fields = ["name" , "id" , "venue", "start_time" , "end_time" , 'credits']
 
 class TimeSerializer(serializers.Serializer):
     start_time = serializers.TimeField()
@@ -46,4 +46,4 @@ class EventSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ["sender_id" , "message"]
+        fields = ["sender_id" , "message" , "timestamp"]

@@ -135,7 +135,7 @@ def GetSlot(duration ,date ,*args, **kwargs):
                 if(current_date.day == date.day):
                     for item in final_booking:
                         print("U R REQUESTING TOFSYQ!!!")
-                        if((datetime.datetime.now()+timedelta(hours=10,minutes=30)).time() < convertIntoTime(item[0]-1)):
+                        if((datetime.datetime.now()+timedelta(hours=11,minutes=30)).time() < convertIntoTime(item[0]-1)):
                             timestamp = (convertIntoTime(item[0]-1) , convertIntoTime(item[len(item)-1]))
                             final_times.append(timestamp)
                 else:
@@ -168,14 +168,16 @@ def doOauth(code):
         "code" : code
     }
     temp_data = requests.post('https://channeli.in/open_auth/token/' , data=post_data)
+    if(temp_data.status_code != 200):
+        raise Exception()
     temp_data = temp_data.json()
-    print(temp_data)
-  
     access_token = temp_data["access_token"]
     header = {
         "Authorization" : f"Bearer {access_token}"
     }
     person_data = requests.get('https://channeli.in/open_auth/get_user_data/' , headers=header)
+    if(person_data.status_code != 200):
+        raise Exception()
     person_data = person_data.json()
     enrollNum = person_data["username"]
     name = person_data["person"]["fullName"]
@@ -202,33 +204,23 @@ def invconvertTime(start_time , end_time):
     first_as_list = start_time.split(":")
     start_hour = int(first_as_list[0])
     start_minute = int(first_as_list[1])
-
     second_as_list = end_time.split(":")
     end_hour = int(second_as_list[0])
     end_minute = int(second_as_list[1])
-
     start_hour -= 8
     start_minute /= 15
-
     start_ans = int(4*start_hour + start_minute)
-
     end_hour -= 8
     end_minute /= 15
-
     end_ans = int(4*end_hour + end_minute)
-
-
     return f"{start_ans} , {end_ans}"
 
 def invconvertTimeSingle(start_time):
     start_hour = start_time.hour
     start_minute = start_time.minute
-
     start_hour -= 8
     start_minute /= 15
-
     start_ans = int(4*start_hour + start_minute)
-
     return f"{start_ans}"
 
 def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
@@ -238,35 +230,39 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
     end = int(result_list[1])
     duration_slot = int((end-start)*15)
     x = freeSlots.objects.filter(amenity_id=amenity_id)
-    for i in range(len(x)):
-        if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
-            if(start == 0):
-                for j in range(start+1,end+1):
-                    n = numbers.objects.get(value=j)
-                    x[i].slots.remove(n)
-                x[i].save()
-            else:
-                for j in range(start+1,end+1):
-                    n = numbers.objects.get(value=j)
-                    x[i].slots.remove(n)
-                x[i].save()
-
-
-    booking = IndividualBooking()
-    booking.amenity_id=amenity_id
-    booking.booker_id=id_user
-    booking.duration_of_booking = duration_slot
-    slot_time = convertIntoTime(start)
-    booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,slot_time.hour,slot_time.minute,0,0)
-    booking.save()
-
-    data = {}
-    data["amenity_id"] = amenity_id
-    data["booker_id"] = id_user
-    data["time_of_slot"] = convertIntoTime(start)
-    data["duration_of_booking"] = duration_slot
-    data["id"] = booking.id
-    return data
+    u = User.objects.get(id=id_user)
+    u.credits = u.credits - Amenity.objects.get(id=amenity_id).credits
+    print(u.credits)
+    if(u.credits < 0):
+        return -1
+    else:
+        for i in range(len(x)):
+            if(x[i].date.month == date.month and x[i].date.day == date.day and x[i].date.year == date.year):
+                if(start == 0):
+                    for j in range(start+1,end+1):
+                        n = numbers.objects.get(value=j)
+                        x[i].slots.remove(n)
+                    x[i].save()
+                else:
+                    for j in range(start+1,end+1):
+                        n = numbers.objects.get(value=j)
+                        x[i].slots.remove(n)
+                    x[i].save()
+        u.save()
+        booking = IndividualBooking()
+        booking.amenity_id=amenity_id
+        booking.booker_id=id_user
+        booking.duration_of_booking = duration_slot
+        slot_time = convertIntoTime(start)
+        booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,slot_time.hour,slot_time.minute,0,0)
+        booking.save()
+        data = {}
+        data["amenity_id"] = amenity_id
+        data["booker_id"] = id_user
+        data["time_of_slot"] = convertIntoTime(start)
+        data["duration_of_booking"] = duration_slot
+        data["id"] = booking.id
+        return data
 
 def cancelGroupRes(booking_id):
     booking = GroupBooking.objects.filter(id=booking_id)
