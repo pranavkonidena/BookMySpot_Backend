@@ -9,6 +9,7 @@ import os
 import requests
 from dotenv import load_dotenv
 load_dotenv()
+from rest_framework import status
 # Create your views here.
 
 class UserList(generics.ListAPIView):
@@ -95,10 +96,13 @@ data_filled = None
 @api_view(["GET"])
 def userAuth(request):
     code = request.query_params.get("code")
-    print(code)
-    data_filled = doOauth(code)
-    return Response(data_filled)
-    
+    try:
+        print(code)
+        data_filled = doOauth(code)
+        return Response(data_filled , status=status.HTTP_200_OK)
+    except:
+        return Response("Error Logging You In" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 @api_view(["GET"])
@@ -125,7 +129,8 @@ def makeIndiReservation(request):
     format = '%Y-%m-%d'
     date_time_str = datetime.datetime.strptime(date , format)
     data = makeIndiRes(id_user,amenity_id,start_time,end_time,date_time_str)
-
+    if(data == -1):
+        return Response("Insufficient Credits" , status=status.HTTP_412_PRECONDITION_FAILED)
     data = IndividualBookingSerializer(data)
     return Response(data.data)
 
@@ -140,15 +145,16 @@ class EventsList(generics.ListAPIView):
     
     def get_queryset(self):
         queryset = Event.objects.all()
+        queryset = queryset.filter(time_of_occourence_start__gt = datetime.datetime.now())
         token = self.request.query_params.get("id")
+        id = self.request.query_params.get("event_id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
         if(token != None):
             me = ModUser.objects.get(id=token)
             a = Amenity.objects.get(admin=me)
             queryset = queryset.filter(amenity=a)
         
-        
-        
-    
         return queryset
 
 import json
