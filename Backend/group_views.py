@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 import datetime
+from rest_framework import status
 class GroupList(generics.ListAPIView):
     serializer_class = GroupSerializer
     def get_queryset(self):
@@ -39,11 +40,14 @@ def groupReservationView(request):
     data = GroupBookingSerializer(data)
     return Response(data.data)
 
-@api_view(["GET"])
+@api_view(["DELETE"])
 def cancelGroupReservation(request):
-    booking_id = request.query_params.get("booking_id")
-    cancelGroupRes(booking_id)
-    return Response("Ok")
+    try:
+        booking_id = request.data.get("booking_id")
+        cancelGroupRes(booking_id)
+        return Response("Ok" , status=status.HTTP_200_OK)
+    except:
+        return Response("Error" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

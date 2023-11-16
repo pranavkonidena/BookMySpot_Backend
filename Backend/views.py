@@ -126,19 +126,34 @@ def makeIndiReservation(request):
     end_time = request.data["end_time"]
     id_user = request.data["id_user"]
     date = request.data["date"]
+    amenity = Amenity.objects.get(id=amenity_id)
     format = '%Y-%m-%d'
     date_time_str = datetime.datetime.strptime(date , format)
     data = makeIndiRes(id_user,amenity_id,start_time,end_time,date_time_str)
     if(data == -1):
         return Response("Insufficient Credits" , status=status.HTTP_412_PRECONDITION_FAILED)
-    data = IndividualBookingSerializer(data)
-    return Response(data.data)
+    # data = IndividualBookingSerializer(data)
+    bookings = []
+    entry = {}
+    entry["id"] = data["id"]
+    entry["type"] = "individual"
+    entry["time_of_slot"] = str(data["time_of_slot"])
+    entry["duration_of_booking"] = data["duration_of_booking"]
+    entry["timestamp_of_booking"] = str(data["timestamp_of_booking"])
+    entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
+    json_entry = json.dumps(entry)
+    bookings.append(json_entry)
+    return Response(bookings , status=status.HTTP_200_OK)
 
-@api_view(["GET"])
+@api_view(["DELETE"])
 def cancelIndiReservation(request):
-    booking_id= request.query_params.get("booking_id")
-    cancelIndiRes(booking_id)
-    return Response("OK")
+    try:
+        booking_id= request.data.get("booking_id")
+        cancelIndiRes(booking_id)
+        return Response("Ok" , status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response("Failed" , status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class EventsList(generics.ListAPIView):
     serializer_class = EventSerializer
@@ -158,19 +173,59 @@ class EventsList(generics.ListAPIView):
         return queryset
 
 import json
-@api_view(["POST"])
+@api_view(["GET" , "POST"])
 def getBooking(request):
-    user_id = request.data["id"]
-    date = request.data["date"]
-    date = datetime.datetime.strptime(date , '%Y-%m-%d')
-    indi = IndividualBooking.objects.filter(booker_id=user_id)
-    groups = Group.objects.filter(member=user_id)
-    bookings = []
-    time = datetime.datetime.now()
-    for item in indi:
-        print(time)
-        if(item.time_of_slot.day == date.day and item.time_of_slot.month == date.month and item.time_of_slot.year == date.year):
-            print(item.id)
+    if(request.method == "POST"):
+        user_id = request.data["id"]
+        date = request.data["date"]
+        date = datetime.datetime.strptime(date , '%Y-%m-%d')
+        indi = IndividualBooking.objects.filter(booker_id=user_id)
+        groups = Group.objects.filter(member=user_id)
+        bookings = []
+        time = datetime.datetime.now()
+        for item in indi:
+            if(item.time_of_slot.day == date.day and item.time_of_slot.month == date.month and item.time_of_slot.year == date.year):
+                amenity = Amenity.objects.get(id=item.amenity.id)
+                entry = {}
+                entry["id"] = item.id
+                entry["type"] = "individual"
+                entry["time_of_slot"] = str(item.time_of_slot)
+                entry["duration_of_booking"] = item.duration_of_booking
+                entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
+                entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
+                json_entry = json.dumps(entry)
+                bookings.append(json_entry)
+        
+        
+        for item in groups:
+            bookings_groups = GroupBooking.objects.filter(booker=item.id)
+            group_entry = {}
+            group_entry["name"] = item.name
+            group_entry["members"] = [member.id for member in item.member.all()]  # Convert ManyToMany to a list of IDs
+            group_entries = []
+            
+            for booking in bookings_groups:
+                print(booking.time_of_slot)
+                if(booking.time_of_slot.day ==  date.day and booking.time_of_slot.month == date.month and booking.time_of_slot.year == date.year):
+                # if(time_diff > 0):
+                    amenity = Amenity.objects.get(id=booking.amenity.id)
+                    entry = {}
+                    entry["id"] = booking.id
+                    entry["type"] = "group"
+                    entry["time_of_slot"] = str(booking.time_of_slot)
+                    entry["duration_of_booking"] = booking.duration_of_booking
+                    entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
+                    entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
+                    entry["group"] = group_entry
+                    group_entries.append(entry)
+            
+            bookings.extend(group_entries)
+
+        return Response(bookings , status=status.HTTP_200_OK)
+    elif(request.method == "GET"):
+        booking_id = request.query_params.get("id")
+        try:
+            item = IndividualBooking.objects.get(id=booking_id)
             amenity = Amenity.objects.get(id=item.amenity.id)
             entry = {}
             entry["id"] = item.id
@@ -180,34 +235,27 @@ def getBooking(request):
             entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
             entry["amenity"] = {"name" : amenity.name, "venue" : amenity.venue}
             json_entry = json.dumps(entry)
-            bookings.append(json_entry)
-    
-    
-    for item in groups:
-        bookings_groups = GroupBooking.objects.filter(booker=item.id)
-        group_entry = {}
-        group_entry["name"] = item.name
-        group_entry["members"] = [member.id for member in item.member.all()]  # Convert ManyToMany to a list of IDs
-        group_entries = []
+            return Response(json_entry , status=status.HTTP_200_OK)
+        except:
+            item = GroupBooking.objects.get(id=booking_id)
+            group = item.booker
+            group_entry = {}
+            group_entry["name"] = item.name
+            group_entry["members"] = [member.id for member in item.member.all()]
+            amenity = Amenity.objects.get(id=booking.amenity.id)
+            entry = {}
+            entry["id"] = booking.id
+            entry["type"] = "group"
+            entry["time_of_slot"] = str(booking.time_of_slot)
+            entry["duration_of_booking"] = booking.duration_of_booking
+            entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
+            entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
+            entry["group"] = group_entry
+            group_entries.append(entry)
+            return Response(entry , status=status.HTTP_200_OK)
         
-        for booking in bookings_groups:
-            print(booking.time_of_slot)
-            if(booking.time_of_slot.day ==  date.day and booking.time_of_slot.month == date.month and booking.time_of_slot.year == date.year):
-            # if(time_diff > 0):
-                amenity = Amenity.objects.get(id=booking.amenity.id)
-                entry = {}
-                entry["id"] = booking.id
-                entry["type"] = "group"
-                entry["time_of_slot"] = str(booking.time_of_slot)
-                entry["duration_of_booking"] = booking.duration_of_booking
-                entry["timestamp_of_booking"] = str(booking.timestamp_of_booking)
-                entry["amenity"] = {"name": amenity.name, "venue": amenity.venue}
-                entry["group"] = group_entry
-                group_entries.append(entry)
-        
-        bookings.extend(group_entries)
 
-    return Response(bookings)
+    
 
 class AmenitiesList(generics.ListAPIView):
     serializer_class = AmenitySerializer

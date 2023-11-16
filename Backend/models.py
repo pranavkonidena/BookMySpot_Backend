@@ -22,14 +22,14 @@ class IndividualBooking(models.Model):
     booker = models.ForeignKey("User" , on_delete=models.CASCADE)
     time_of_slot = models.DateTimeField()
     duration_of_booking = models.IntegerField(default=60)
-    timestamp_of_booking = models.DateTimeField(auto_now_add=True)
+    timestamp_of_booking = models.DateTimeField()
     amenity = models.ForeignKey("Amenity" , on_delete=models.CASCADE)
 
 class GroupBooking(models.Model):
     booker = models.ForeignKey("Group" , on_delete=models.CASCADE)
     time_of_slot = models.DateTimeField()
     duration_of_booking = models.IntegerField(default=60)
-    timestamp_of_booking = models.DateTimeField(auto_now_add=True)
+    timestamp_of_booking = models.DateTimeField()
     amenity = models.ForeignKey("Amenity" , on_delete=models.CASCADE)
     
 

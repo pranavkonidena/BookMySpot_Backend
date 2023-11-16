@@ -65,7 +65,7 @@ def convertIntoTime(a):
 all_bookings = []
 
 from datetime import timedelta
-
+import pytz
 
 def GetSlot(duration ,date ,*args, **kwargs):
     duration = int(duration)
@@ -253,6 +253,7 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
         booking.amenity_id=amenity_id
         booking.booker_id=id_user
         booking.duration_of_booking = duration_slot
+        booking.timestamp_of_booking = datetime.datetime.now() + datetime.timedelta(days=0 ,hours=11 , minutes=30)
         slot_time = convertIntoTime(start)
         booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,slot_time.hour,slot_time.minute,0,0)
         booking.save()
@@ -262,66 +263,74 @@ def makeIndiRes(id_user,amenity_id,start_time,end_time,date):
         data["time_of_slot"] = convertIntoTime(start)
         data["duration_of_booking"] = duration_slot
         data["id"] = booking.id
+        data["timestamp_of_booking"] = booking.timestamp_of_booking
+        print(booking.timestamp_of_booking)
         return data
 
 def cancelGroupRes(booking_id):
-    booking = GroupBooking.objects.filter(id=booking_id)
-    print(booking)
-    amenity_id = booking[0].amenity.id
-    start_time = booking[0].time_of_slot
-    duration_of_time = booking[0].duration_of_booking
-    start_conv = int(invconvertTimeSingle(start_time))
-    end_conv = start_conv + int(int(duration_of_time)/15)
-    print(f"START_CONV{start_conv}")
-    print(f"END_CONV{end_conv}")
-    slots = freeSlots.objects.filter(amenity_id=amenity_id)
-    for i in range(len(slots)):
-        if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
-            if start_conv != 0:
-                for j in range(start_conv,end_conv+1):
-                    if(j not in slots[i].slots.all()):
-                        n = numbers.objects.get(value=j)
-                        slots[i].slots.add(n)
-            else:
-                for j in range(start_conv+1,end_conv+1):
-                    if(j not in slots[i].slots.all()):
-                        n = numbers.objects.get(value=j)
-                        slots[i].slots.add(n)
+    try:
+        booking = GroupBooking.objects.filter(id=booking_id)
+        print(booking)
+        amenity_id = booking[0].amenity.id
+        start_time = booking[0].time_of_slot
+        duration_of_time = booking[0].duration_of_booking
+        start_conv = int(invconvertTimeSingle(start_time))
+        end_conv = start_conv + int(int(duration_of_time)/15)
+        print(f"START_CONV{start_conv}")
+        print(f"END_CONV{end_conv}")
+        slots = freeSlots.objects.filter(amenity_id=amenity_id)
+        for i in range(len(slots)):
+            if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
+                if start_conv != 0:
+                    for j in range(start_conv,end_conv+1):
+                        if(j not in slots[i].slots.all()):
+                            n = numbers.objects.get(value=j)
+                            slots[i].slots.add(n)
+                else:
+                    for j in range(start_conv+1,end_conv+1):
+                        if(j not in slots[i].slots.all()):
+                            n = numbers.objects.get(value=j)
+                            slots[i].slots.add(n)
 
-        
-        slots[i].save()
-    booking.delete()
+            
+            slots[i].save()
+        booking.delete()
+    except Exception as e:
+        print(e)
+        raise APIException()
 
 
 
 def cancelIndiRes(booking_id):
-    booking = IndividualBooking.objects.filter(id=booking_id)
-    print(booking)
-    amenity_id = booking[0].amenity.id
-    start_time = booking[0].time_of_slot
-    duration_of_time = booking[0].duration_of_booking
-    start_conv = int(invconvertTimeSingle(start_time))
-    end_conv = start_conv + int(int(duration_of_time)/15)
-    print(f"START_CONV{start_conv}")
-    print(f"END_CONV{end_conv}")
-    slots = freeSlots.objects.filter(amenity_id=amenity_id)
-    for i in range(len(slots)):
-        if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
-            if start_conv != 0:
-                for j in range(start_conv,end_conv+1):
-                    if(j not in slots[i].slots.all()):
-                        n = numbers.objects.get(value=j)
-                        slots[i].slots.add(n)
-            else:
-                for j in range(start_conv+1,end_conv+1):
-                    if(j not in slots[i].slots.all()):
-                        n = numbers.objects.get(value=j)
-                        slots[i].slots.add(n)
+    try:
+        booking = IndividualBooking.objects.filter(id=booking_id)
+        print(booking)
+        amenity_id = booking[0].amenity.id
+        start_time = booking[0].time_of_slot
+        duration_of_time = booking[0].duration_of_booking
+        start_conv = int(invconvertTimeSingle(start_time))
+        end_conv = start_conv + int(int(duration_of_time)/15)
+        print(f"START_CONV{start_conv}")
+        print(f"END_CONV{end_conv}")
+        slots = freeSlots.objects.filter(amenity_id=amenity_id)
+        for i in range(len(slots)):
+            if(slots[i].date.month == start_time.month and slots[i].date.day == start_time.day and slots[i].date.year == start_time.year):
+                if start_conv != 0:
+                    for j in range(start_conv,end_conv+1):
+                        if(j not in slots[i].slots.all()):
+                            n = numbers.objects.get(value=j)
+                            slots[i].slots.add(n)
+                else:
+                    for j in range(start_conv+1,end_conv+1):
+                        if(j not in slots[i].slots.all()):
+                            n = numbers.objects.get(value=j)
+                            slots[i].slots.add(n)
 
-        
-        slots[i].save()
-    booking.delete()
-
+            
+            slots[i].save()
+        booking.delete()
+    except:
+        raise APIException()
    
 def AuthForHead(email , password):
     #Check if given email is a valid head email
@@ -367,6 +376,7 @@ def groupReservation(group_id , start_time , end_time ,amenity_id,date):
     time_of_slot = convertIntoTime(start)
     booking.duration_of_booking = duration_slot
     booking.time_of_slot = datetime.datetime(date.year,date.month,date.day,time_of_slot.hour , time_of_slot.minute , time_of_slot.second)
+    booking.timestamp_of_booking = datetime.datetime.now() + datetime.timedelta(days=0 , hours=11 , minutes=30)
     booking.save()
 
     data = {}
@@ -375,6 +385,7 @@ def groupReservation(group_id , start_time , end_time ,amenity_id,date):
     data["time_of_slot"] = str(booking.time_of_slot)
     data["duration_of_booking"] = duration_slot
     data["id"] = booking.id
+    data["timestamp_of_booking"]  = booking.timestamp_of_booking
     return data
 
 def checkForEvents(amenity_id):
