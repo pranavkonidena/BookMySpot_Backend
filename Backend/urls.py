@@ -15,6 +15,7 @@ urlpatterns = [
     path("team/delete" , team_views.DeleteTeam),
     path("team/add" , team_views.addMember),
     path("team/remove" , team_views.removeMember),
+    path("team/leave" , team_views.exitTeam),
     path("teamasadmin" , team_views.TeamswithAdmin.as_view()),
     path("booking/individual" , views.getBooking),
     path("booking/getSlots" , views.getAvailableSlots),

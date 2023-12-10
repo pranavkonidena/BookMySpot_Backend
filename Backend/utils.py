@@ -32,9 +32,10 @@ def createTeam(teamname , admin_id):
     team.save()
     team.admin_id.add(admin_id)
     team.save()
+    return team.id
 
-def addMemberToTeam(teamname , member , admin):
-    team = Team.objects.filter(name = teamname)
+def addMemberToTeam(teamid , member , admin):
+    team = Team.objects.filter(id=teamid)
     if(not team):
         raise APIException("Team not found")
     else:
@@ -43,14 +44,18 @@ def addMemberToTeam(teamname , member , admin):
         else:
             team[0].members_id.add(member)
     team[0].save()
+    print("DONE")
 
-def removeMemberFromTeam(team_name , member):
-    team = Team.objects.filter(name=team_name)
+def removeMemberFromTeam(team_id , member):
+    team = Team.objects.filter(id=team_id)
     if(not team):
         raise APIException("Team not found")
     else:
         user = User.objects.get(id=member)
-        team[0].members_id.remove(user)
+        if(user in team[0].members_id.all()):
+            team[0].members_id.remove(user)
+        else:
+            team[0].admin_id.remove(user)
     team[0].save()
     
 import math
@@ -89,7 +94,9 @@ def GetSlot(duration ,date ,*args, **kwargs):
         empty = []
         x = freeSlots.objects.filter(amenity_id=amenity[j].id)
         for i in range(len(x)):
+            print(x[i].date)
             if(x[i].date.year == date.year and x[i].date.month==date.month and x[i].date.day==date.day):
+                print("PUSHED NOW")
                 empty.append(x[i].slots.all())
         if(len(empty) == 0):
             return []
@@ -147,6 +154,8 @@ def GetSlot(duration ,date ,*args, **kwargs):
                 entry["id"] = amenity[j].id
                 entry["free_slots"] = final_times
                 full_final_times_with_id.append(entry)
+            print("FULL TIMES")
+            print(full_final_times_with_id)
             return full_final_times_with_id    
                 
 import os
@@ -447,23 +456,27 @@ def removeSlotsWhileEvent(amenity_id):
 
 
 def createEvent(amenity_id , event_name , time_of_occourence_start , time_of_occourence_end):
-    event = Event()
-    event.amenity_id = amenity_id
-    event.name = event_name
-    format ='%Y-%m-%d %H:%M:%S'
-    event.time_of_occourence_start = datetime.datetime.strptime(time_of_occourence_start , format)
-    event.time_of_occourence_end = datetime.datetime.strptime(time_of_occourence_end , format)
-    event.save()
-
-    removeSlotsWhileEvent(amenity_id)
-
-    data = {}
-    data["amenity_id"] = amenity_id
-    data["name"] = event_name
-    data["time_of_occourence_start"] = time_of_occourence_start
-    data["time_of_occourence_end"] = time_of_occourence_end
-    data["team"] = []
-    return data
+    try:
+        event = Event()
+        event.amenity_id = amenity_id
+        event.name = event_name
+        format ='%Y-%m-%d %H:%M:%S'
+        event.time_of_occourence_start = datetime.datetime.strptime(time_of_occourence_start , format)
+        event.time_of_occourence_end = datetime.datetime.strptime(time_of_occourence_end , format)
+        event.save()
+        data = {}
+        data["amenity_id"] = amenity_id
+        data["name"] = event_name
+        data["time_of_occourence_start"] = time_of_occourence_start
+        data["time_of_occourence_end"] = time_of_occourence_end
+        data["team"] = []
+        try:
+            removeSlotsWhileEvent(amenity_id)
+            return data
+        except:
+            return data
+    except Exception as e:
+        print(e)
 
 
 def addTeamToEvent(event_id , team_id):
@@ -472,7 +485,7 @@ def addTeamToEvent(event_id , team_id):
         raise APIException("Event not found")
     else:
         event.team.add(team_id)
-    
+        print("TEAM ADDED")
     event.save()
 
     return event.team

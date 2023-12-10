@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from Backend.utils import createTeam , addMemberToTeam , addTeamToEvent , cancelTeamReservation , removeMemberFromTeam
 from Backend.permissions import TeamAdminPermission
 from django.db.models import Q
+from rest_framework import status
 class TeamListView(generics.ListAPIView):
     serializer_class = TeamSerializer
     def get_queryset(self):
@@ -32,18 +33,22 @@ class TeamListIDView(generics.ListAPIView):
 def createTeamView(request):
     teamname = request.data["name"]
     admin_id = request.data["id"]
-    createTeam(teamname , admin_id)
-    return Response(request.data)
+    teamId = createTeam(teamname , admin_id)
+    return Response(teamId)
 
 
 @api_view(['POST'])
 @permission_classes([TeamAdminPermission])
 def addMember(request):
+    print("GOT")
     if request.method == "POST":
-        teamname = request.data["name"]
+        teamid = request.data["team_id"]
         member_id = request.data["member_id"]
         admin = request.data["admin"]
-        addMemberToTeam(teamname , member_id , admin)
+        print(teamid)
+        print(member_id)
+        print(admin)
+        addMemberToTeam(teamid , member_id , admin)
         return Response(request.data)
     else:
         return Response("OK")
@@ -52,11 +57,22 @@ def addMember(request):
 @permission_classes([TeamAdminPermission])
 def removeMember(request):
     if request.method == "POST":
-        team_name = request.data["name"]
+        team_id = request.data["team_id"]
         member_id = request.data["member_id"]
-        removeMemberFromTeam(team_name , member_id)
-
+        removeMemberFromTeam(team_id , member_id)
         return Response("Ok")
+
+@api_view(['POST'])
+def exitTeam(request):
+    if request.method == "POST":
+        team_id = request.data["team_id"]
+        member_id = request.data["member_id"]
+        try:
+            removeMemberFromTeam(team_id , member_id)
+            return Response("Ok" , status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response("Error" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -81,11 +97,14 @@ class TeamswithAdmin(generics.ListAPIView):
         queryset = Team.objects.filter(admin_id=id)
         return queryset
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([TeamAdminPermission])
 def DeleteTeam(request):
-    name = request.data["name"]
-    team = Team.objects.get(name=name)
-    team.delete()
-    # team.save()
-    return Response("Ok")
+    try:
+        id = int(request.data["team_id"])
+        team = Team.objects.get(id=id)
+        team.delete()
+        # team.save()
+        return Response("Ok")
+    except Exception as e:
+        return Response("Error" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)

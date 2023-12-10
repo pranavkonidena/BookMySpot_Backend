@@ -50,7 +50,6 @@ def getAvailableSlots(request):
     date = request.data["date"]
     format = '%Y-%m-%d'
     datetime_str = datetime.datetime.strptime(date , format)
-
     if("location" in request.data and "amenity" in request.data):
         data = GetSlot(request.data["duration"] ,datetime_str, location = request.data["location"] , amenity=request.data["amenity"])
     elif("amenity" in request.data):
@@ -60,6 +59,7 @@ def getAvailableSlots(request):
     else:
         data = GetSlot(request.data["duration"],datetime_str)
     serialized_data = []
+    print(data)
     print(len(serialized_data))
     if(data is None):
         return Response("[]")
@@ -188,7 +188,7 @@ def getBooking(request):
                 amenity = Amenity.objects.get(id=item.amenity.id)
                 entry = {}
                 entry["id"] = item.id
-                entry["type"] = "individual"
+                entry["type"] = "Individual"
                 entry["time_of_slot"] = str(item.time_of_slot)
                 entry["duration_of_booking"] = item.duration_of_booking
                 entry["timestamp_of_booking"] = str(item.timestamp_of_booking)
@@ -229,7 +229,7 @@ def getBooking(request):
             amenity = Amenity.objects.get(id=item.amenity.id)
             entry = {}
             entry["id"] = item.id
-            entry["type"] = "individual"
+            entry["type"] = "Individual"
             entry["time_of_slot"] = str(item.time_of_slot)
             entry["duration_of_booking"] = item.duration_of_booking
             entry["timestamp_of_booking"] = str(item.timestamp_of_booking)

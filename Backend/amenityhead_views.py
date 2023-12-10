@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import api_view,permission_classes
 from Backend.models import ModUser,Amenity,freeSlots,numbers,IndividualBooking,GroupBooking,Event
 from Backend.utils import AuthForHead,createEvent
@@ -27,15 +28,18 @@ def CreateEventView(request):
     if(len(amenity) == 0):
         return Response("Amenity not found")
     else:
-        amenity_id = amenity[0].id
-        print(amenity[0].name)
-        event_name = request.data["event_name"]
-        time_of_occourence_start = request.data["time_start"]
-        time_of_occourence_end = request.data["time_end"]
+        try:
+            amenity_id = amenity[0].id
+            print(amenity[0].name)
+            event_name = request.data["event_name"]
+            time_of_occourence_start = request.data["time_start"]
+            time_of_occourence_end = request.data["time_end"]
 
-        data = createEvent(amenity_id,event_name,time_of_occourence_start,time_of_occourence_end)
-        data = EventSerializer(data)
-        return Response(data.data)
+            data = createEvent(amenity_id,event_name,time_of_occourence_start,time_of_occourence_end)
+            data = EventSerializer(data)
+            return Response(data.data)
+        except Exception as e:
+            return Response(e , status=500);
    
     
 
@@ -90,12 +94,14 @@ def listallBookings(request):
         temp = IndividualBookingSerializer(item)
         temp_data = temp.data
         temp_data["type"] = "Individual"
+        temp_data["amenity"] = {"name" : a.name , "venue" : a.venue}
         total_bookings.append(temp_data)
     
     for item in g:
         temp = GroupBookingSerializer(item)
         temp_data = temp.data
         temp_data["type"] = "Group"
+        temp_data["amenity"] = {"name" : a.name , "venue" : a.venue}
         total_bookings.append(temp_data)
     
     return Response(total_bookings)
